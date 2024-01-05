@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412081701990",
+    "project_id": "alive-skin",
+    "storage_bucket": "alive-skin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412081701990:android:b29b8c59d212ebf47799a7",
+        "android_client_info": {
+          "package_name": "com.alive.skin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQYuMF2Lqdx-kwzos5iVHYvx3u1vc9b1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
