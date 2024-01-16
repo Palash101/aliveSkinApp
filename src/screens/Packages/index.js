@@ -54,7 +54,7 @@ const Package = () => {
           position: 'absolute',
           zIndex: 99,
         }}
-        onPress={() => navigation.navigate('home')}>
+        onPress={() => navigation.goBack()}>
         <Image
           source={assets.back}
           style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
@@ -63,7 +63,7 @@ const Package = () => {
       <Text style={styles.sectionHeading}>PACKAGES</Text>
 
       <FlatList
-        data={packages}
+        data={packages.sort((a, b) => a.position - b.position)}
         pagingEnabled
         contentContainerStyle={{gap: 10, padding: 10,paddingBottom:50}}
         decelerationRate={'normal'}

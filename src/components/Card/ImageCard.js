@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ddd',
     borderRadius: 10,
-    height: 250,
-    width: width - 100,
+    height: 200,
+    width: width - 150,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E2D8CF',
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: '#fff',
-    padding: 10,
+    padding: 5,
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#000',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 14,
     position: 'relative',
     fontFamily:'Gill Sans Medium'
   },

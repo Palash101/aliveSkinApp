@@ -21,11 +21,14 @@ export class ScheduleController {
       });
   }
 
-  async bookNow(slot_id, package_id, token) {
+  async bookNow(slot_id, package_id, type, token) {
 
     const newdata = new FormData();
     newdata.append('slot_id', slot_id);
-    newdata.append('package_id', package_id);
+    if(package_id){
+      newdata.append('package_id', package_id);
+    }
+    newdata.append('type', type);
     console.log(newdata,'newdata')
     
     return fetch(API_BASE + '/booking', {

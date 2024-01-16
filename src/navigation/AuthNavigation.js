@@ -8,6 +8,8 @@ import Verify from '../screens/Auth/Verify';
 import {Dimensions, Platform, StyleSheet, Text, View} from 'react-native';
 import Questionaries from '../screens/Questionaries';
 import DrawerNavigation from './DrawerNavigation';
+import Terms from '../screens/Terms';
+import ScreenNavigationStack from './ScreenNavigation';
 
 const width = Dimensions.get('window').width;
 
@@ -39,6 +41,13 @@ const AuthNavigationStack = ({navigation}) => {
         }}
       />
       <Stack.Screen
+        name="Terms"
+        component={Terms}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name={'Verify'}
         component={Verify}
         options={{
@@ -60,6 +69,7 @@ const AuthNavigationStack = ({navigation}) => {
           cardStyle: {backgroundColor: '#ffffff'},
         }}
       />
+
     </Stack.Navigator>
   );
 };

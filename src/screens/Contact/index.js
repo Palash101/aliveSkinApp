@@ -35,7 +35,7 @@ const Contact = props => {
     <View style={styles.container}>
       <LinearGradient colors={activeColor} style={styles.card1}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('home')}
+          onPress={() => navigation.goBack()}
           style={{
             marginLeft: 0,
             marginTop: 60,
@@ -62,7 +62,7 @@ const Contact = props => {
             paddingBottom: 50,
           }}>
             <Text style={[styles.itemHeading, {marginBottom: 10}]}>
-                {data.heading}
+                {data?.heading}
               </Text>
           <View style={{marginTop: 10}}>
             <RenderHTML

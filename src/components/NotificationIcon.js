@@ -2,15 +2,30 @@ import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {assets} from '../config/AssetsConfig';
 import {useNavigation} from '@react-navigation/native';
+import {UserContext} from '../../context/UserContext';
 
 export const NotificationIcon = props => {
+  const {getAuth} = React.useContext(UserContext);
+
+  const isShow = async () => {
+    const authen = await getAuth();
+    console.log(authen, 'authhh');
+    return authen;
+  };
+
   return (
-    <TouchableOpacity style={styles.icon} onPress={props.onPress}>
-      <View style={styles.numberBox}>
-        <Text style={styles.numberText}>3</Text>
-      </View>
-      <Image source={assets.bell} style={styles.image} />
-    </TouchableOpacity>
+    <>
+      {isShow() === true ? (
+        <TouchableOpacity style={styles.icon} onPress={props.onPress}>
+          <View style={styles.numberBox}>
+            <Text style={styles.numberText}>3</Text>
+          </View>
+          <Image source={assets.bell} style={styles.image} />
+        </TouchableOpacity>
+      ) : (
+        <></>
+      )}
+    </>
   );
 };
 

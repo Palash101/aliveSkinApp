@@ -1,5 +1,6 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
+  Animated,
   Dimensions,
   FlatList,
   Image,
@@ -24,13 +25,14 @@ import RenderHTML from 'react-native-render-html';
 import {VideoController} from '../../controllers/VideoController';
 import {UserContext} from '../../../context/UserContext';
 import {LikeSection} from '../../components/LikeSection';
-import { BlogsController } from '../../controllers/BlogController';
+import {BlogsController} from '../../controllers/BlogController';
+import DynamicHeader from '../../components/DynamicHeader';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
 const ProgramDetails = props => {
-  const activeColor = ['#fff', '#fff', 'rgba(225,215,206,1)'];
+  const activeColor = ['#fff', '#fff', '#fff'];
   const activeColor2 = [
     'rgba(225,215,206,1)',
     'rgba(225,215,206,0.4)',
@@ -49,6 +51,7 @@ const ProgramDetails = props => {
   const [active, setActive] = useState(0);
   const [liked, setLiked] = useState('Unliked');
   const [likeCount, setLikeCount] = useState(0);
+  let scrollOffsetY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -72,6 +75,11 @@ const ProgramDetails = props => {
       setLikeCount(result1.video?.like_count);
       setActive(0);
       setUrl(IMAGE_BASE + result1.video.files[0].image);
+      if (result1?.video?.my_like.like === 'Liked') {
+        setLiked(result1?.video?.my_like?.like);
+      } else {
+        setLiked('Unliked');
+      }
 
       const viewResult = await instance.view(
         props.route.params.item.id,
@@ -80,8 +88,11 @@ const ProgramDetails = props => {
       );
       console.log(viewResult, 'viewResult');
     } else {
-      const instance1 = new BlogsController(); 
-      const result1 = await instance1.authBlogDetail('Video', props.route.params.item.id);
+      const instance1 = new BlogsController();
+      const result1 = await instance1.authBlogDetail(
+        'Video',
+        props.route.params.item.id,
+      );
       console.log(result1.video, 'result1.video');
       setItem(result1.video);
       setLikeCount(result1.video?.like_count);
@@ -110,7 +121,7 @@ const ProgramDetails = props => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
+      {/* <ImageBackground
         source={{uri: IMAGE_BASE + item?.bannerImage}}
         resizeMode="cover"
         style={styles.videoCardbg}>
@@ -131,7 +142,7 @@ const ProgramDetails = props => {
                 alignItems: 'center',
                 borderRadius: 5,
               }}
-              onPress={() => navigation.navigate('Home')}>
+              onPress={() => navigation.goBack()}>
               <Image
                 source={assets.back}
                 style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
@@ -141,13 +152,24 @@ const ProgramDetails = props => {
           <Text style={styles.avlHeading}>{item?.title}</Text>
         
         </View>
-      </ImageBackground>
-
+      </ImageBackground> */}
+      <DynamicHeader
+        animHeaderValue={scrollOffsetY}
+        image={item?.bannerImage}
+        goBack={() => navigation.goBack()}
+      />
       <LinearGradient colors={activeColor} style={styles.card1}>
-        <ScrollView contentContainerStyle={{flex: 1, padding: 20}}>
+        <ScrollView
+          onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
+            {useNativeDriver: false},
+          )}
+          style={{flex: 1}}
+          contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
+          scrollEventThrottle={16}>
           <LikeSection
             like={like}
-            liked={item?.my_like?.like === 'Liked' ? 'Liked' : 'Uniked'}
+            liked={liked === 'Liked' ? 'Liked' : 'Unliked'}
             likeCount={likeCount}
             viewCount={item?.view_count}
             commentCount={item?.view_count}
@@ -349,9 +371,10 @@ const styles = StyleSheet.create({
 
   card1: {
     flex: 1,
-    marginTop: -350,
+    marginTop: -30,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    paddingTop: 20,
   },
   slots: {
     display: 'flex',

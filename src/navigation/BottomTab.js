@@ -11,6 +11,7 @@ import Profile from '../screens/Profile';
 import Rewads from '../screens/Rewards';
 import Blogs from '../screens/Blogs';
 import Product from '../screens/Product';
+import Slots from '../screens/Slots';
 
 const Tab = createBottomTabNavigator();
 
@@ -37,7 +38,7 @@ const BottomTab = ({navigation}) => {
         />
         <Tab.Screen
           name={bottomMenu[2].name}
-          component={Rewads}
+          component={Slots}
           options={{
             tabBarLabel: bottomMenu[2].label,
             headerShown: false,

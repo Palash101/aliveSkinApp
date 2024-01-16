@@ -1,4 +1,5 @@
 import {API_BASE} from '../config/ApiConfig';
+import moment from 'moment';
 
 export class AuthContoller {
   async login(phonenumber, uid) {
@@ -25,10 +26,13 @@ export class AuthContoller {
     const newdata = new FormData();
 
     newdata.append('name', data.name);
-    newdata.append('dob', data.dob);
+    newdata.append('dob', moment(data.dob).format("YYYY-MM-DD"));
     newdata.append('gender', data.gender);
     if (data.image) {
       newdata.append('image', data.image);
+    }
+    if (data.email) {
+      newdata.append('email', data.email);
     }
 
     console.log(newdata,'newdata')
@@ -70,4 +74,46 @@ export class AuthContoller {
         return {success: false, error};
       });
   }
+
+  async allQuestions(token) {
+    return fetch(API_BASE + '/questions', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/json',
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+  
+  async firebaseTokenUpdate(firebaseToken, token) {
+    const newdata = new FormData();
+    newdata.append('token', firebaseToken);
+    return fetch(API_BASE + '/auth/token/update', {
+      method: 'POST',
+      body: newdata,
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/json',
+      },
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'reee');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
 }

@@ -1,5 +1,7 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
+  Alert,
+  Animated,
   Dimensions,
   Image,
   ImageBackground,
@@ -23,6 +25,8 @@ import RenderHTML from 'react-native-render-html';
 import {BlogsController} from '../../controllers/BlogController';
 import {UserContext} from '../../../context/UserContext';
 import {LikeSection} from '../../components/LikeSection';
+import PageLoader from '../../components/PageLoader';
+import DynamicHeader from '../../components/DynamicHeader';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -38,16 +42,19 @@ const BlogDetails = props => {
   const {getToken, getUser} = useContext(UserContext);
 
   const [item, setItem] = useState();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [url, setUrl] = useState(
     'https://cdn.coverr.co/videos/coverr-stream-next-to-the-road-4482/1080p.mp4',
   );
   const [show, setShow] = useState(false);
   const [liked, setLiked] = useState('Unliked');
   const [likeCount, setLikeCount] = useState(0);
+  let scrollOffsetY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      setItem('');
+      setLoading(true);
       setLiked('Unliked');
       getDetail();
     });
@@ -60,12 +67,21 @@ const BlogDetails = props => {
     const instance = new BlogsController();
     const token = await getToken();
     if (token) {
-      
-      const result1 = await instance.authBlogDetail('Blog', props.route.params.item.id, token);
+      const result1 = await instance.authBlogDetail(
+        'Blog',
+        props.route.params.item.id,
+        token,
+      );
+      console.log(result1?.blog?.my_like, 'result1');
       setItem(result1.blog);
       setLikeCount(result1.blog?.like_count);
       setLoading(false);
-      setLiked(item?.my_like?.like)
+      if (result1?.blog?.my_like.like === 'Liked') {
+        setLiked(result1?.blog?.my_like?.like);
+      } else {
+        setLiked('Unliked');
+      }
+      console.log(result1?.blog?.my_like?.like, 'likeval');
 
       const viewResult = await instance.view(
         props.route.params.item.id,
@@ -73,8 +89,7 @@ const BlogDetails = props => {
         token,
       );
       console.log(viewResult, 'viewResult');
-    }
-    else{
+    } else {
       const result1 = await instance.blogDetail(props.route.params.item.id);
       setItem(result1.blog);
       setLikeCount(result1.blog?.like_count);
@@ -89,6 +104,7 @@ const BlogDetails = props => {
     setLiked(likeVal);
     setLikeCount(count);
     if (token) {
+      console.log(item.id, likeVal, token, 'sss');
       const instance = new BlogsController();
       const result = await instance.like(item.id, likeVal, token);
     }
@@ -96,7 +112,8 @@ const BlogDetails = props => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
+      <PageLoader loading={loading} />
+      {/* <ImageBackground
         source={{uri: IMAGE_BASE + item?.headerImage}}
         resizeMode="cover"
         style={styles.videoCardbg}>
@@ -111,7 +128,7 @@ const BlogDetails = props => {
                 alignItems: 'center',
                 borderRadius: 5,
               }}
-              onPress={() => navigation.navigate('Home')}>
+              onPress={() => navigation.goBack()}>
               <Image
                 source={assets.back}
                 style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
@@ -119,12 +136,23 @@ const BlogDetails = props => {
             </TouchableOpacity>
           </View>
         </View>
-      </ImageBackground>
+      </ImageBackground> */}
+
+      <DynamicHeader
+        animHeaderValue={scrollOffsetY}
+        image={item?.headerImage}
+        goBack={() => navigation.goBack()}
+      />
 
       <LinearGradient colors={activeColor} style={styles.card1}>
         <ScrollView
-          style={{flex: 1,}}
-          contentContainerStyle={{ padding: 20, paddingBottom: 50}}>
+          style={{flex: 1}}
+          contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
+            {useNativeDriver: false},
+          )}>
           <LikeSection
             like={like}
             liked={liked === 'Liked' ? 'Liked' : 'Unliked'}
@@ -245,9 +273,10 @@ const styles = StyleSheet.create({
 
   card1: {
     flex: 1,
-    marginTop: -350,
+    marginTop: -30,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    paddingTop: 20,
   },
 
   avlHeading: {

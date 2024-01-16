@@ -54,6 +54,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ddd',
+    resizeMode:'contain',
+    backgroundColor:'#fff'
   },
   content: {
     padding: 0,

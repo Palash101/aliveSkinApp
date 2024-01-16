@@ -5,13 +5,13 @@
 import {AppRegistry} from 'react-native';
 import App from './App'; // Import your main component
 import {name as appName} from './app.json';
-import {initializeApp} from '@react-native-firebase/app';
 
-const firebaseConfig = {
-  // Your Firebase configuration object
-};
+import messaging from '@react-native-firebase/messaging';
 
-initializeApp(firebaseConfig);
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('Message handled in the background!', remoteMessage);
+});
+
 
 function HeadlessCheck({isHeadless}) {
   if (isHeadless) {

@@ -14,10 +14,10 @@ export const bottomMenu = [
     inActive: assets.product,
   },
   {
-    label: 'REWARDS',
-    name: 'rewards',
-    active: assets.reward,
-    inActive: assets.reward,
+    label: 'SCHEDULE',
+    name: 'Slots',
+    active: assets.calendar,
+    inActive: assets.calendar,
   },
   {
     label: 'BLOGS',

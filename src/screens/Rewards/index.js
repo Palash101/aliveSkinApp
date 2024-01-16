@@ -57,11 +57,11 @@ const Rewads = () => {
               />
             </TouchableOpacity>
           </View>
-          <Text style={styles.avlHeading}>Get up to 100 Points!</Text>
+          <Text style={styles.avlHeading}>Earn coins on every purchase and use them for discount</Text>
           <Text style={styles.avlPara}>Invite Friends to Alive Skin Now!</Text>
-          <TouchableOpacity style={styles.inviteBtn}>
+          {/* <TouchableOpacity style={styles.inviteBtn}>
             <Text style={styles.inviteText}>Invite Now</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ImageBackground>
 

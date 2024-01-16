@@ -11,6 +11,7 @@ import {
   View,
   Dimensions,
   Platform,
+  Alert,
 } from 'react-native';
 import {assets} from '../config/AssetsConfig';
 import {useNavigation} from '@react-navigation/native';
@@ -36,45 +37,45 @@ import ProfileEdit from '../screens/Profile/ProfileEdit';
 import About from '../screens/About';
 import Contact from '../screens/Contact';
 import SlotHistory from '../screens/Slots/SlotHistory';
+import Reel from '../screens/Reel';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Drawer = createDrawerNavigator();
 const width = Dimensions.get('window').width;
 function CustomDrawerContent(props) {
-  const userCtx = React.useContext(UserContext);
 
-  const logout = () => {
-    userCtx.signOut();
-  };
-
+ 
   return (
     <DrawerContentScrollView style={{position: 'relative'}} {...props}>
-      <GreyBox
-        label="Profile"
-        {...props}
-        active={false}
-        onPress={() => props.navigation.navigate('Profile')}
-      />
+     
+   
       <GreyBox
         label="About Alive Skin"
         {...props}
         onPress={() => props.navigation.navigate('About')}
       />
+      {/* <GreyBox
+        label="Reel"
+        {...props}
+        active={false}
+        onPress={() => props.navigation.navigate('Reel')}
+      /> */}
       <GreyBox
         label="Faqs"
         {...props}
         onPress={() => props.navigation.navigate('Faqs')}
       />
-     
+
       <GreyBox
         label="Terms & Conditions"
         onPress={() => props.navigation.navigate('Terms')}
       />
-       <GreyBox
+      <GreyBox
         label="Contact"
         {...props}
         onPress={() => props.navigation.navigate('Contact')}
       />
-      <GreyBox label="Logout" onPress={logout} />
+     
     </DrawerContentScrollView>
   );
 }
@@ -120,7 +121,7 @@ export default function DrawerNavigation() {
   return (
     <Drawer.Navigator
       screenOptions={{
-        headerShown: false
+        headerShown: false,
         // headerLeft: () => <HambergerIcon />,
         // headerRight: () => <></>,
         // headerStyle: {
@@ -129,18 +130,33 @@ export default function DrawerNavigation() {
         // },
       }}
       drawerContent={props => <CustomDrawerContent {...props} />}>
-
+    
       <Drawer.Screen
+        name="Home"
+        component={BottomTab}
+        options={{
+          headerTitle: props => <LogoTitle {...props} />,
+        }}
+      />
+
+      {/* <Drawer.Screen
         name={'Questionaries'}
         component={Questionaries}
         options={{
-          headerShown: false
+          headerShown: false,
         }}
       />
 
       <Drawer.Screen
         name="Home"
         component={BottomTab}
+        options={{
+          headerTitle: props => <LogoTitle {...props} />,
+        }}
+      />
+      <Drawer.Screen
+        name="Reel"
+        component={Reel}
         options={{
           headerTitle: props => <LogoTitle {...props} />,
         }}
@@ -160,7 +176,7 @@ export default function DrawerNavigation() {
           headerShown: false,
         }}
       />
-       <Drawer.Screen
+      <Drawer.Screen
         name="Slots"
         component={Slots}
         options={{
@@ -182,7 +198,7 @@ export default function DrawerNavigation() {
           headerShown: false,
         }}
       />
- <Drawer.Screen
+      <Drawer.Screen
         name="ProgramDetails"
         component={ProgramDetails}
         options={{
@@ -215,7 +231,7 @@ export default function DrawerNavigation() {
         }}
       />
 
-       <Drawer.Screen
+      <Drawer.Screen
         name="Product"
         component={Product}
         options={{
@@ -223,7 +239,7 @@ export default function DrawerNavigation() {
           headerTitle: props => <LogoTitle {...props} />,
         }}
       />
-   <Drawer.Screen
+      <Drawer.Screen
         name="ProductDetails"
         component={ProductDetails}
         options={{
@@ -232,7 +248,7 @@ export default function DrawerNavigation() {
         }}
       />
 
-<Drawer.Screen
+      <Drawer.Screen
         name="Package"
         component={Package}
         options={{
@@ -240,7 +256,7 @@ export default function DrawerNavigation() {
           headerTitle: props => <LogoTitle {...props} />,
         }}
       />
-   <Drawer.Screen
+      <Drawer.Screen
         name="PackageDetail"
         component={PackageDetail}
         options={{
@@ -248,7 +264,7 @@ export default function DrawerNavigation() {
           headerTitle: props => <LogoTitle {...props} />,
         }}
       />
-  <Drawer.Screen
+      <Drawer.Screen
         name="Cart"
         component={Cart}
         options={{
@@ -282,15 +298,14 @@ export default function DrawerNavigation() {
           headerTitle: props => <LogoTitle {...props} />,
         }}
       />
-       <Drawer.Screen
+      <Drawer.Screen
         name="ProfileEdit"
         component={ProfileEdit}
         options={{
           headerLeft: () => <BackIcon />,
           headerTitle: props => <LogoTitle {...props} />,
         }}
-      />
-
+      /> */}
     </Drawer.Navigator>
   );
 }

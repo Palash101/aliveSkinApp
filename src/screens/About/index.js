@@ -35,7 +35,7 @@ const About = props => {
     <View style={styles.container}>
       <LinearGradient colors={activeColor} style={styles.card1}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('home')}
+          onPress={() => navigation.goBack()}
           style={{
             marginLeft: 0,
             marginTop: 60,

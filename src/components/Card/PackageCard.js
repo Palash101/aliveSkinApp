@@ -50,7 +50,7 @@ const PackageCard = props => {
   }, []);
 
   return (
-    <View onPress={props.onPress} style={styles.card1}>
+    <TouchableOpacity onPress={props.onPress} style={styles.card1}>
       <View style={styles.innerContent}>
         {item?.tag &&
         <View style={styles.tags}>
@@ -61,12 +61,12 @@ const PackageCard = props => {
         <Text style={styles.subTitle}>{item?.bookings} Appointments</Text>
         <Text style={styles.price}>{item?.price} KD</Text>
         <Text style={styles.pricePara}>{item?.days} DAYS</Text>
-        <TouchableOpacity onPress={props.onPress} style={styles.btn1}>
+        <View style={styles.btn1}>
           <Text style={styles.btnText}>Get Started</Text>
-        </TouchableOpacity>
+        </View>
       </View>
      
-    </View>
+    </TouchableOpacity>
   );
 };
 

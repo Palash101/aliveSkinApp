@@ -28,6 +28,11 @@ import {BlogsController} from '../../controllers/BlogController';
 import {ScheduleController} from '../../controllers/ScheduleController';
 import {NotificationIcon} from '../../components/NotificationIcon';
 import {PackageItem} from '../../components/PackageItem';
+import {ProductContoller} from '../../controllers/ProductController';
+import {AuthContoller} from '../../controllers/AuthController';
+import {useToast} from 'react-native-toast-notifications';
+import messaging from '@react-native-firebase/messaging';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -44,16 +49,35 @@ const Home = () => {
   const [recommandProducts, setRecommandProducts] = useState([]);
   const [packageItem, setPackageItem] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
+  const [auth, setAuth] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
+    getDataLoad();
     const unsubscribe = navigation.addListener('focus', () => {
       getUserDetail();
       getData();
-      getPackage();
       getBookings();
+      getPackage();
+      getFirebaseToken();
     });
     return unsubscribe;
   }, []);
+
+  const getFirebaseToken = async () => {
+    const newFirebaseToken = await messaging().getToken();
+    const saveToken = await AsyncStorage.getItem('firebaseToken');
+
+    if (!saveToken || saveToken !== newFirebaseToken) {
+      const token = await getToken();
+      const instance = new AuthContoller();
+      const result = await instance.firebaseTokenUpdate(
+        newFirebaseToken,
+        token,
+      );
+      AsyncStorage.setItem('firebaseToken', newFirebaseToken);
+    }
+  };
 
   const getPackage = async () => {
     const token = await getToken();
@@ -80,19 +104,28 @@ const Home = () => {
   };
 
   const getUserDetail = async () => {
-    const res = await getUser();
-    setUser(res);
+    const token = await getToken();
+    if (token) {
+      const instance = new AuthContoller();
+      const result = await instance.profileDetails(token);
+      setUser(result.user);
+      setAuth(true);
+      console.log(result, 'resss');
+    }
   };
   const getData = async () => {
     const instance = new HomeController();
     const result = await instance.HomeData();
     setPackages(result?.packages?.data);
 
-    setRecommandProducts(result?.recomendations?.data);
-
     const instance1 = new BlogsController();
     const token = await getToken();
     if (token) {
+      const instance2 = new ProductContoller();
+      const recommandData = await instance2.recommandProducts(token);
+      console.log(recommandData, 'recommandData');
+      setRecommandProducts(recommandData?.recomendation);
+
       const result1 = await instance1.authAllBlogs('Blog', token);
 
       let blogAll = result1.blogs.filter(i => i.type === 'Normal');
@@ -109,6 +142,11 @@ const Home = () => {
     setLoading(false);
   };
 
+  const getDataLoad = async () => {
+    setLoading(true);
+    getData();
+  };
+
   const goToProgram = item => {
     navigation.navigate('ProgramDetails', {item: item});
   };
@@ -116,259 +154,317 @@ const Home = () => {
   const goToProduct = item => {
     navigation.navigate('ProductDetails', {item: item});
   };
+  const goToAppointment = async() => {
+    const token = await getToken();
+    if(token){
+      if (packageItem?.length > 0) {
+        navigation.navigate('Slots');
+      } else {
+        toast.show('Please purchase package for book appointments.');
+      }
+    }
+    else{
+      toast.show('Please login for book appointments.');
+    }
+  };
 
   return (
-    <ImageBackground resizeMode="cover" style={styles.bg}>
-      <TouchableOpacity
-        style={{
-          marginLeft: 20,
-          marginTop: 50,
-          backgroundColor: '#000',
-          width: 28,
-          height: 28,
-          alignItems: 'center',
-          borderRadius: 5,
-        }}
-        onPress={() => navigation.openDrawer()}>
-        <Image
-          source={assets.hamburger}
-          style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
-        />
-      </TouchableOpacity>
-
-      <NotificationIcon onPress={() => navigation.navigate('notification')} />
-
-      <PageLoader loading={loading} />
-
-      <ScrollView style={{flex: 1, padding: 15, paddingBottom: 50}}>
-        
-        <View style={styles.heading}>
-          <Image source={assets.hi} style={styles.handIcon} />
-          <Text style={styles.username}>Hi, {user?.name}</Text>
-        </View>
-
-        {allBookings?.length > 0 ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Upcoming Appointments </Text>
-            <FlatList
-              data={allBookings}
-              pagingEnabled
-              horizontal={true}
-              contentContainerStyle={{gap: 10}}
-              showsHorizontalScrollIndicator={false}
-              decelerationRate={'normal'}
-              renderItem={({item, index}) => (
-                <View style={styles.bookingBox}>
-                  <Text style={styles.date}>
-                    {moment(item.date).format('DD MMM, YYYY')}
-                  </Text>
-                  <Text style={styles.at}>at</Text>
-                  <Text style={styles.time}>
-                    {moment(item.date).format('HH:mm A')}
-                  </Text>
-                </View>
-              )}
-            />
-          </View>
-        ) : (
-          <></>
-        )}
-
-        <View style={styles.section}>
+    <>
+      {loading === true ? (
+        <PageLoader loading={loading} />
+      ) : (
+        <ImageBackground resizeMode="cover" style={styles.bg}>
           <TouchableOpacity
             style={{
-              marginVertical: 10,
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              backgroundColor: '#6A6C61',
-              padding: 10,
-              borderRadius: 20,
+              marginLeft: 20,
+              marginTop: 50,
+              backgroundColor: '#000',
+              width: 28,
+              height: 28,
+              alignItems: 'center',
+              borderRadius: 5,
             }}
-            onPress={() => navigation.navigate('Slots')}>
+            onPress={() => navigation.openDrawer()}>
             <Image
-              source={assets.calendar}
-              style={{
-                width: 16,
-                tintColor: '#fff',
-                height: 16,
-                marginRight: 10,
-              }}
+              source={assets.hamburger}
+              style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
             />
-            <Text
-              style={{
-                color: '#fff',
-                fontFamily: 'Gill Sans Medium',
-                fontWeight: '600',
-              }}>
-              Add New Appointment
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Recommanded Activities</Text>
-
-          <FlatList
-            data={[0, 1, 2, 3]}
-            pagingEnabled
-            horizontal={true}
-            contentContainerStyle={{gap: 10}}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate={'normal'}
-            renderItem={({item, index}) => (
-              <ActivityCard
-                onPress={goToProgram}
-                key={index + 'Activity'}
-                active={index % 2 != 0}
-              />
-            )}
-          />
-        </View> */}
-
-        {recommandProducts?.length ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Recommanded Products </Text>
-            <FlatList
-              data={recommandProducts}
-              pagingEnabled
-              horizontal={true}
-              contentContainerStyle={{gap: 10}}
-              showsHorizontalScrollIndicator={false}
-              decelerationRate={'normal'}
-              renderItem={({item, index}) => (
-                <RecommandedProductCard
-                  onPress={goToProduct}
-                  item={item?.product}
-                  key={index + 'recommand'}
-                  active={index % 2 != 0}
-                />
-              )}
-            />
-          </View>
-        ) : (
-          <></>
-        )}
-
-        {packageItem?.length ? (
-          <View style={styles.section}>
-            <FlatList
-              data={packageItem}
-              pagingEnabled
-              contentContainerStyle={{gap: 10}}
-              showsHorizontalScrollIndicator={false}
-              decelerationRate={'normal'}
-              renderItem={({item, index}) => (
-                <PackageItem
-                  upgrade={() => navigation.navigate('Package')}
-                  item={item}
-                />
-              )}
-            />
-          </View>
-        ) : (
-          <View style={styles.section}>
-            <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-              Our Packages
-            </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Package')}
-              style={styles.moreBox}>
-              <Text style={styles.more}>More...</Text>
-            </TouchableOpacity>
-            <FlatList
-              data={packages}
-              pagingEnabled
-              horizontal={true}
-              // contentContainerStyle={{gap: 10}}
-              showsHorizontalScrollIndicator={false}
-              decelerationRate={'normal'}
-              renderItem={({item, index}) => (
-                <PackageCard
-                  key={index + 'Package'}
-                  onPress={() =>
-                    navigation.navigate('PackageDetail', {item: item})
-                  }
-                  item={item}
-                  index={index}
-                />
-              )}
-            />
-          </View>
-        )}
-
-        <View style={[styles.section, {marginTop: 10}]}>
-          <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-            Personal Program
-          </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Programs')}
-            style={styles.moreBox}>
-            <Text style={styles.more}>See More</Text>
           </TouchableOpacity>
 
-          <FlatList
-            data={videos}
-            pagingEnabled
-            horizontal={true}
-            // contentContainerStyle={{gap: 10}}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate={'normal'}
-            renderItem={({item, index}) => (
-              <VideoCard
-                item={item}
-                onPress={() => goToProgram(item)}
-                key={index + 'Video'}
-              />
-            )}
+          <NotificationIcon
+            onPress={() => navigation.navigate('notification')}
           />
-        </View>
 
-        <View style={[styles.section, {marginTop: 0}]}>
-          <Text style={styles.sectionHeading}>Beauty Tips</Text>
+          <PageLoader loading={loading} />
 
-          <FlatList
-            data={beautyBlog}
-            pagingEnabled
-            horizontal={true}
-            contentContainerStyle={{gap: 10}}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate={'normal'}
-            renderItem={({item, index}) => (
-              <ImageCard
-                onPress={() => navigation.navigate('BlogDetails', {item: item})}
-                item={item}
-                key={index + 'beautyVideo'}
-              />
+          <ScrollView style={{flex: 1, padding: 15, paddingBottom: 50}}>
+            {user && user?.name ? (
+              <View style={styles.heading}>
+                <Image source={assets.hi} style={styles.handIcon} />
+                <Text style={styles.username}>Hi, {user?.name}</Text>
+              </View>
+            ) : (
+              <></>
             )}
-          />
-        </View>
 
-        <View style={[styles.section, {marginBottom: 50}]}>
-          <Text style={styles.sectionHeading}>Blogs</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('blogs')}
-            style={styles.moreBox}>
-            <Text style={styles.more}>See More</Text>
-          </TouchableOpacity>
-          <FlatList
-            data={blogs}
-            pagingEnabled
-            horizontal={true}
-            contentContainerStyle={{gap: 10}}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate={'normal'}
-            renderItem={({item, index}) => (
-              <ImageCard
-                onPress={() => navigation.navigate('BlogDetails', {item: item})}
-                item={item}
-                key={index + 'Video'}
-              />
+            {allBookings?.length > 0 ? (
+              <View style={styles.section}>
+                <Text style={styles.sectionHeading}>
+                  Upcoming Appointments{' '}
+                </Text>
+                <FlatList
+                  data={allBookings}
+                  pagingEnabled
+                  horizontal={true}
+                  contentContainerStyle={{gap: 10}}
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate={'normal'}
+                  renderItem={({item, index}) => (
+                    <View style={styles.bookingBox}>
+                      <Text style={styles.date}>
+                        {moment(item.date).format('DD')}
+                      </Text>
+                      <Text style={styles.month}>
+                        {moment(item.date).format('MMM')}
+                      </Text>
+                      <Text style={styles.year}>
+                        {moment(item.date).format('YYYY')}
+                      </Text>
+
+                      <Text style={styles.time}>
+                        {moment(item.date).format('HH:mm A')}
+                      </Text>
+                    </View>
+                  )}
+                />
+              </View>
+            ) : (
+              <></>
             )}
-          />
-        </View>
-      </ScrollView>
-    </ImageBackground>
+
+<View style={styles.aboutBox}>
+              <Image source={assets.image2} style={styles.aboutImage} />
+              <View style={{justifyContent: 'center'}}>
+                <Text style={styles.abTitle}>Alive.Skin</Text>
+                <Text style={styles.abPara}>Start your concern with me</Text>
+                <TouchableOpacity
+                  style={{
+                    marginTop: 5,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    backgroundColor: '#6A6C61',
+                    padding: 5,
+                    borderRadius: 8,
+                  }}
+                  onPress={() => goToAppointment()}>
+                  <Image
+                    source={assets.calendar}
+                    style={{
+                      width: 12,
+                      tintColor: '#fff',
+                      height: 12,
+                      marginRight: 10,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontFamily: 'Gill Sans Medium',
+                      fontWeight: '600',
+                      fontSize: 12,
+                    }}>
+                    Add New Appointment
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {recommandProducts?.length ? (
+              <View style={[styles.section,{marginTop:20}]}>
+                <Text style={styles.sectionHeading}>Recommended Products </Text>
+                <FlatList
+                  data={recommandProducts}
+                  pagingEnabled
+                  horizontal={true}
+                  contentContainerStyle={{gap: 10}}
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate={'normal'}
+                  renderItem={({item, index}) => (
+                    <RecommandedProductCard
+                      onPress={goToProduct}
+                      item={item?.product}
+                      key={index + 'recommend'}
+                      active={index % 2 != 0}
+                    />
+                  )}
+                />
+              </View>
+            ) : (
+              <></>
+            )}
+
+           
+
+            {packageItem?.length ? (
+              <>
+                {/* <View style={styles.section}>
+                  <FlatList
+                    data={packageItem}
+                    pagingEnabled
+                    contentContainerStyle={{gap: 10}}
+                    showsHorizontalScrollIndicator={false}
+                    decelerationRate={'normal'}
+                    renderItem={({item, index}) => (
+                      <PackageItem
+                        upgrade={() => navigation.navigate('Package')}
+                        item={item}
+                      />
+                    )}
+                  />
+                </View> */}
+
+                {/* <View style={styles.section}>
+                  <TouchableOpacity
+                    style={{
+                      marginTop: 10,
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      backgroundColor: '#6A6C61',
+                      padding: 10,
+                      borderRadius: 20,
+                    }}
+                    onPress={() => navigation.navigate('Slots')}>
+                    <Image
+                      source={assets.calendar}
+                      style={{
+                        width: 16,
+                        tintColor: '#fff',
+                        height: 16,
+                        marginRight: 10,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        color: '#fff',
+                        fontFamily: 'Gill Sans Medium',
+                        fontWeight: '600',
+                      }}>
+                      Add New Appointment
+                    </Text>
+                  </TouchableOpacity>
+                </View> */}
+              </>
+            ) : (
+              <View style={[styles.section,{marginTop:10,marginBottom:0}]}>
+                <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                  Consulting packages
+                </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Package')}
+                  style={styles.moreBox}>
+                  <Text style={styles.more}>More...</Text>
+                </TouchableOpacity>
+                <FlatList
+                  data={packages.sort((a, b) => a.position - b.position)}
+                  pagingEnabled
+                  horizontal={true}
+                  // contentContainerStyle={{gap: 10}}
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate={'normal'}
+                  renderItem={({item, index}) => (
+                    <PackageCard
+                      key={index + 'Package'}
+                      onPress={() =>
+                        navigation.navigate('PackageDetail', {item: item})
+                      }
+                      item={item}
+                      index={index}
+                    />
+                  )}
+                />
+              </View>
+            )}
+
+            <View style={[styles.section, {marginTop: 15}]}>
+              <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                Personal Program
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Programs')}
+                style={styles.moreBox}>
+                <Text style={styles.more}>See More</Text>
+              </TouchableOpacity>
+
+              <FlatList
+                data={videos}
+                pagingEnabled
+                horizontal={true}
+                // contentContainerStyle={{gap: 10}}
+                showsHorizontalScrollIndicator={false}
+                decelerationRate={'normal'}
+                renderItem={({item, index}) => (
+                  <VideoCard
+                    item={item}
+                    onPress={() => goToProgram(item)}
+                    key={index + 'Video'}
+                  />
+                )}
+              />
+            </View>
+
+            <View style={[styles.section, {marginTop: 10}]}>
+              <Text style={styles.sectionHeading}>Beauty Tips</Text>
+
+              <FlatList
+                data={beautyBlog}
+                pagingEnabled
+                horizontal={true}
+                contentContainerStyle={{gap: 10}}
+                showsHorizontalScrollIndicator={false}
+                decelerationRate={'normal'}
+                renderItem={({item, index}) => (
+                  <ImageCard
+                    onPress={() =>
+                      navigation.navigate('BlogDetails', {item: item})
+                    }
+                    item={item}
+                    key={index + 'beautyVideo'}
+                  />
+                )}
+              />
+            </View>
+
+            <View style={[styles.section, {marginBottom: 50,marginTop:20}]}>
+              <Text style={styles.sectionHeading}>Blogs</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('blogs')}
+                style={styles.moreBox}>
+                <Text style={styles.more}>See More</Text>
+              </TouchableOpacity>
+              <FlatList
+                data={blogs}
+                pagingEnabled
+                horizontal={true}
+                contentContainerStyle={{gap: 10}}
+                showsHorizontalScrollIndicator={false}
+                decelerationRate={'normal'}
+                renderItem={({item, index}) => (
+                  <ImageCard
+                    onPress={() =>
+                      navigation.navigate('BlogDetails', {item: item})
+                    }
+                    item={item}
+                    key={index + 'Video'}
+                  />
+                )}
+              />
+            </View>
+          </ScrollView>
+        </ImageBackground>
+      )}
+    </>
   );
 };
 export default Home;
@@ -377,13 +473,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  aboutBox: {
+    marginTop: 30,
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#d7d5da',
+    padding: 10,
+    borderRadius: 10,
+  },
+  aboutImage: {
+    width: 102,
+    height: 102,
+  },
+  abTitle: {
+    fontFamily: 'Gill Sans Medium',
+    fontSize: 16,
+  },
+  abPara: {
+    fontFamily: 'Gotham-Book',
+    fontSize: 12,
+  },
   bookingBox: {
     backgroundColor: '#fff',
     borderWidth: 1,
     paddingHorizontal: 20,
     borderRadius: 4,
-    borderTopWidth: 4,
     borderColor: '#6A6C61',
+    overflow: 'hidden',
   },
   bidBox: {
     paddingHorizontal: 10,
@@ -397,8 +513,22 @@ const styles = StyleSheet.create({
   },
   date: {
     marginTop: 10,
-    fontFamily: 'Gotham-Medium',
+    fontFamily: 'Gotham-Black',
     textAlign: 'center',
+    fontSize: 26,
+  },
+  month: {
+    marginTop: 2,
+    fontFamily: 'Gotham-Book',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  year: {
+    marginTop: 2,
+    fontFamily: 'Gotham-Boook',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginBottom: 30,
   },
   at: {
     marginTop: 5,
@@ -409,11 +539,16 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontFamily: 'Gotham-Medium',
     textAlign: 'center',
-    marginBottom: 10,
-    fontSize: 14,
+    fontSize: 12,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 5,
+    backgroundColor: '#d7d5da',
   },
   section: {
-    marginTop: 10,
+    marginTop: 0,
   },
 
   moreBox: {

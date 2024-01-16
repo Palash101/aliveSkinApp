@@ -4,6 +4,9 @@ export const assets = {
   logo_trans: require('../../assets/images/logo_trans.png'),
   mobile_enter: require('../../assets/images/mobile_enter.png'),
   enter_otp: require('../../assets/images/enter_otp.png'),
+  image2: require('../../assets/images/image2.png'),
+
+  qbg: require('../../assets/images/qbg.png'),
 
   image1: require('../../assets/images/image1.jpeg'),
 

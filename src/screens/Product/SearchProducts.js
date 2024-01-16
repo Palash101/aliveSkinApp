@@ -22,6 +22,7 @@ import BrandCard from '../../components/Card/BrandCard';
 import ProductCard2 from '../../components/Card/ProductCard2';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PageLoader from '../../components/PageLoader';
+import { Badge } from 'react-native-paper';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -65,7 +66,7 @@ const SearchProducts = props => {
     <View style={styles.bg}>
       <PageLoader loading={loadMore} />
       <TouchableOpacity
-        onPress={() => navigation.navigate('home')}
+        onPress={() => navigation.goBack()}
         style={{
           marginLeft: 10,
           marginTop: 55,
@@ -151,9 +152,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     position: 'absolute',
-    top: 55,
+    top: 52,
     left: 40,
-    padding: 3,
+    padding: 6,
     borderRadius: 20,
   },
   input: {

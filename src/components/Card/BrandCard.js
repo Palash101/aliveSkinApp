@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     overflow: 'hidden',
+    borderRadius: 8,
   },
   content: {
     height: '100%',

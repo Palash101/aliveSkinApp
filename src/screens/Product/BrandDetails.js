@@ -26,13 +26,14 @@ import {ProductContoller} from '../../controllers/ProductController';
 import {FlatList} from 'react-native-gesture-handler';
 import ProductCard from '../../components/Card/ProductCard';
 import ProductCard2 from '../../components/Card/ProductCard2';
+import DynamicHeader from '../../components/DynamicHeader';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
 const BrandDetails = props => {
   const activeColor = ['#fff', '#fff', 'rgba(225,215,206,1)'];
-  const scrollOffsetY = useRef(new Animated.Value(0)).current;
+  let scrollOffsetY = useRef(new Animated.Value(0)).current;
 
   const navigation = useNavigation();
 
@@ -60,22 +61,6 @@ const BrandDetails = props => {
   const goToProgram = item => {
     navigation.navigate('ProductDetails', {item: item});
   };
-
-  const Max_Header_Height = 200;
-  const Min_Header_Height = 70;
-  const Scroll_Distance = Max_Header_Height - Min_Header_Height;
-  const animatedValue = 100;
-
-  const animatedHeaderHeight = animatedValue.interpolate({
-    inputRange: [0, Scroll_Distance],
-    outputRange: [Max_Header_Height, Min_Header_Height],
-    extrapolate: 'clamp',
-  });
-  const animateHeaderBackgroundColor = animatedValue.interpolate({
-    inputRange: [0, Max_Header_Height - Min_Header_Height],
-    outputRange: ['blue', 'red'],
-    extrapolate: 'clamp',
-  });
 
   return (
     <View style={styles.container}>
@@ -106,19 +91,12 @@ const BrandDetails = props => {
         
           </View>
       </ImageBackground> */}
-
+      <DynamicHeader
+        animHeaderValue={scrollOffsetY}
+        image={item?.image}
+        goBack={() => navigation.goBack()}
+      />
       <LinearGradient colors={activeColor} style={styles.card1}>
-        <Animated.View
-          style={[
-            styles.header,
-            {
-              height: animatedHeaderHeight,
-              backgroundColor: animateHeaderBackgroundColor,
-            },
-          ]}>
-          <Text style={styles.headerText}>A List of Books</Text>
-        </Animated.View>
-
         <ScrollView
           style={{flex: 1}}
           contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
@@ -160,6 +138,7 @@ const BrandDetails = props => {
                 />
               ))}
             </View>
+
             {loadMore && <ActivityIndicator style={{marginVertical: 50}} />}
           </View>
         </ScrollView>
@@ -252,7 +231,7 @@ const styles = StyleSheet.create({
 
   card1: {
     flex: 1,
-    marginTop: -350,
+    marginTop: -30,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

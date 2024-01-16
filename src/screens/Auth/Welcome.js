@@ -1,14 +1,31 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, View} from 'react-native';
 import {assets} from '../../config/AssetsConfig';
 import {DarkButton, ThemeButton} from '../../components/Buttons';
+import {UserContext} from '../../../context/UserContext';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
 const Welcome = () => {
   const navigation = useNavigation();
+  const {getUser, getAuth} = useContext(UserContext);
+  const [auth, setAuth] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getUserDetail();
+    });
+    return unsubscribe;
+  }, []);
+
+  const getUserDetail = async () => {
+    const authen = await getAuth();
+    if (authen === true) {
+      navigation.navigate('Drawer');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -79,7 +96,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Gill Sans Medium',
   },
   bold: {
-    fontWeight:'600',
+    fontWeight: '600',
     fontFamily: 'Gill Sans Medium',
   },
   checkImage: {

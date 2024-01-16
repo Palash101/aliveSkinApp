@@ -41,7 +41,7 @@ const Faqs = ({navigation}) => {
     <View style={styles.container}>
       <LinearGradient colors={activeColor} style={styles.card1}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('home')}
+          onPress={() => navigation.goBack()}
           style={{
             marginLeft: 0,
             marginTop: 60,
@@ -134,13 +134,12 @@ const styles = StyleSheet.create({
   },
   faqTitle: {
     backgroundColor: '#f2f2f2',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 4, height: 5},
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal:20,
+    borderRadius: 8,
     fontFamily: 'Gotham-Book',
+    borderWidth: 1,
+    borderColor: '#ddd',
     marginBottom: 5,
     display: 'flex',
     flexDirection: 'row',
@@ -149,7 +148,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontFamily: 'Gotham-Medium',
-    lineHeight: 16,
+    lineHeight: 20,
     fontSize: 14,
     color: '#161415',
   },
@@ -161,12 +160,10 @@ const styles = StyleSheet.create({
   },
   faqPara: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 4, height: 5},
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
     fontFamily: 'Gotham-Book',
     color: '#161415',
   },

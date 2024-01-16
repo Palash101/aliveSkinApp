@@ -5,6 +5,8 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,6 +29,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PageLoader from '../../components/PageLoader';
 import RenderHTML from 'react-native-render-html';
 import {ModalView} from '../../components/ModalView';
+import {Modal} from 'react-native-paper';
+
+import useKeyboardHeight from 'react-native-use-keyboard-height';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -48,24 +53,7 @@ const ProductDetails = props => {
   const [more, setMore] = useState(false);
   const [authModal, setAuthModal] = useState(false);
   const [checkDisabled, setCheckDisabled] = useState(false);
-  // const [data, setData] = useState([
-  //   {
-  //     question: 'What type of your skin?',
-  //     options: ['Oily', 'Normal', 'Dry'],
-  //     type: 'option',
-  //     id: 1,
-  //   },
-  //   {
-  //     question: 'In 3 mothes you take any other treatments?',
-  //     type: 'boolean',
-  //     id: 2,
-  //   },
-  //   {
-  //     question: 'Write your skin allergies product name',
-  //     type: 'input',
-  //     id: 3,
-  //   },
-  // ]);
+  const keyboardHeight = useKeyboardHeight();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -198,7 +186,7 @@ const ProductDetails = props => {
   return (
     <View style={styles.bg}>
       <TouchableOpacity
-        onPress={() => navigation.navigate('Product')}
+        onPress={() => navigation.goBack()}
         style={{
           marginLeft: 10,
           marginTop: 55,
@@ -283,29 +271,48 @@ const ProductDetails = props => {
                     {item.product_categories.name}
                   </Text>
                 </View>
-                <Text style={styles.price}>{item.price} KD</Text>
+                <View>
+                  <Text style={styles.price}>
+                    {item.discount === 'true'
+                      ? item.discount_price
+                      : item.price}{' '}
+                    KD
+                  </Text>
+                  {item.discount === 'true' ? (
+                    <Text style={styles.price2}>{item.price} KD</Text>
+                  ) : (
+                    <></>
+                  )}
+                </View>
               </View>
 
               {item.description && item.description !== null && (
                 <View
                   style={[
                     styles.description,
-                    {height: more ? 'auto' : 140, paddingBottom: 20},
+                    {
+                      height: more ? 'auto' : 155,
+                      paddingBottom: 30,
+                      overflow: 'hidden',
+                    },
                   ]}>
-                  <RenderHTML
-                    contentWidth={width - 40}
-                    source={{html: item.description}}
-                  />
+                  <View
+                    style={{height: more ? 'auto' : 115, overflow: 'hidden'}}>
+                    <RenderHTML
+                      contentWidth={width - 40}
+                      source={{html: item.description}}
+                    />
+                  </View>
                   {!more ? (
                     <Text
                       style={{
                         position: 'absolute',
-                        bottom: 30,
-                        right: 10,
+                        bottom: 39,
+                        right: 7,
                         backgroundColor: '#f2f2f2',
                         paddingHorizontal: 4,
                       }}>
-                      ...
+                      .....
                     </Text>
                   ) : (
                     <></>
@@ -316,7 +323,7 @@ const ProductDetails = props => {
                       margin: 5,
                       position: 'absolute',
                       bottom: 5,
-                      right: 10,
+                      right: 25,
                     }}>
                     <Text style={{fontFamily: 'Gotham-Medium', fontSize: 12}}>
                       {more ? 'Read less' : 'Read more'}
@@ -336,12 +343,17 @@ const ProductDetails = props => {
                           style={{width: 12, height: 12, tintColor: i.color}}
                         />
                         <Text style={styles.ingName}>{i.name}</Text>
-                        <TouchableOpacity onPress={() => showInfo(i)}>
-                          <Image
-                            source={assets.info}
-                            style={{width: 12, height: 12, tintColor: '#888'}}
-                          />
-                        </TouchableOpacity>
+
+                        {i?.description?.length > 0 ? (
+                          <TouchableOpacity onPress={() => showInfo(i)}>
+                            <Image
+                              source={assets.info}
+                              style={{width: 12, height: 12, tintColor: '#888'}}
+                            />
+                          </TouchableOpacity>
+                        ) : (
+                          <></>
+                        )}
                       </View>
                     ))}
                   </View>
@@ -395,7 +407,12 @@ const ProductDetails = props => {
       <ModalView
         visible={authModal}
         setVisible={() => setAuthModal(false)}
-        style={{marginTop: 860}}
+        style={{
+          height: 'auto',
+          marginTop: 260,
+          justifyContent: 'flex-end',
+          marginBottom: keyboardHeight,
+        }}
         heading={
           <View style={{flexDirection: 'row', paddingHorizontal: 15}}>
             <Text
@@ -408,64 +425,63 @@ const ProductDetails = props => {
             </Text>
           </View>
         }>
-
         <View style={{paddingHorizontal: 10}}>
           {/* {data.map((i, index) => (
-            <View style={styles.qbox}>
-              <Text style={styles.label}>{i.question}</Text>
-              <View style={styles.answerBox}>
-                {i.type === 'option' ? (
-                  <>
-                    {i.options.map((j, ind1) => (
-                      <TouchableOpacity
-                        onPress={() => saveAnswer(i, j)}
-                        style={[
-                          styles.answerItem,
-                          i.answer === j ? styles.activeAnswer : {},
-                        ]}>
-                        <Text style={[styles.answerText]}>{j}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {i.type === 'boolean' ? (
-                      <>
+              <View style={styles.qbox}>
+                <Text style={styles.label}>{i.question}</Text>
+                <View style={styles.answerBox}>
+                  {i.type === 'option' ? (
+                    <>
+                      {i.options.map((j, ind1) => (
                         <TouchableOpacity
-                          onPress={() => saveAnswer(i, 'Yes')}
+                          onPress={() => saveAnswer(i, j)}
                           style={[
                             styles.answerItem,
-                            i.answer === 'Yes' ? styles.activeAnswer : {},
+                            i.answer === j ? styles.activeAnswer : {},
                           ]}>
-                          <Text style={[styles.answerText]}>Yes</Text>
+                          <Text style={[styles.answerText]}>{j}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => saveAnswer(i, 'No')}
-                          style={[
-                            styles.answerItem,
-                            i.answer === 'No' ? styles.activeAnswer : {},
-                          ]}>
-                          <Text style={[styles.answerText]}>No</Text>
-                        </TouchableOpacity>
-                      </>
-                    ) : (
-                      <>
-                        <View style={styles.inputBox}>
-                          <TextInput
-                            value={data[index].answer}
-                            label={''}
-                            onChangeText={val => saveAnswer(i, val)}
-                            placeholder=""
-                            style={styles.input}
-                          />
-                        </View>
-                      </>
-                    )}
-                  </>
-                )}
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {i.type === 'boolean' ? (
+                        <>
+                          <TouchableOpacity
+                            onPress={() => saveAnswer(i, 'Yes')}
+                            style={[
+                              styles.answerItem,
+                              i.answer === 'Yes' ? styles.activeAnswer : {},
+                            ]}>
+                            <Text style={[styles.answerText]}>Yes</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => saveAnswer(i, 'No')}
+                            style={[
+                              styles.answerItem,
+                              i.answer === 'No' ? styles.activeAnswer : {},
+                            ]}>
+                            <Text style={[styles.answerText]}>No</Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : (
+                        <>
+                          <View style={styles.inputBox}>
+                            <TextInput
+                              value={data[index].answer}
+                              label={''}
+                              onChangeText={val => saveAnswer(i, val)}
+                              placeholder=""
+                              style={styles.input}
+                            />
+                          </View>
+                        </>
+                      )}
+                    </>
+                  )}
+                </View>
               </View>
-            </View>
-          ))} */}
+            ))} */}
 
           <View style={styles.inputBox}>
             <TextInput
@@ -499,22 +515,27 @@ const ProductDetails = props => {
               code ? {opacity: 1} : {opacity: 0.5},
             ]}
             onPress={() => checkCode()}>
-              {modalLoad ?
+            {modalLoad ? (
               <ActivityIndicator size={16} />
-              :
+            ) : (
               <>
                 <Image source={assets.cart} style={styles.cartImage} />
                 <Text style={styles.cartButtonText}>Add to Cart</Text>
               </>
-              }
+            )}
           </TouchableOpacity>
         </View>
       </ModalView>
 
-      <ModalView
+      <Modal
         visible={ingModal}
-        setVisible={() => setIngModal(false)}
-        heading={
+        onDismiss={() => setIngModal(false)}
+        style={{
+          height: 460,
+          marginTop: 260,
+          justifyContent: 'flex-end',
+        }}>
+        <View style={styles.modalBox}>
           <View style={{flexDirection: 'row', paddingHorizontal: 15}}>
             <Image
               source={assets.checked}
@@ -529,14 +550,14 @@ const ProductDetails = props => {
               {activeInfo?.name}
             </Text>
           </View>
-        }>
-        <View style={{paddingHorizontal: 10}}>
-          <RenderHTML
-            contentWidth={width - 40}
-            source={{html: activeInfo?.description}}
-          />
+          <ScrollView contentContainerStyle={{padding: 15}}>
+            <RenderHTML
+              contentWidth={width - 40}
+              source={{html: activeInfo?.description}}
+            />
+          </ScrollView>
         </View>
-      </ModalView>
+      </Modal>
     </View>
   );
 };
@@ -545,6 +566,28 @@ export default ProductDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  modalBox: {
+    paddingTop: Platform.OS === 'ios' ? 30 : 30,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    position: 'absolute',
+    bottom: -140,
+    left: 0,
+    right: 0,
+    height: 400,
+  },
+  titleHeading: {
+    flexDirection: 'row',
+  },
+  titleText: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    fontSize: 14,
+    color: '#161415',
+    fontFamily: 'Gill Sans Medium',
+    textTransform: 'uppercase',
   },
   activeAnswer: {
     backgroundColor: '#E2D8CF',
@@ -745,6 +788,14 @@ const styles = StyleSheet.create({
     color: '#563925',
     fontSize: 18,
     fontFamily: 'Gotham-Medium',
+  },
+  price2: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 14,
+    textDecorationLine: 'line-through',
+    marginTop: 3,
+    marginBottom: 6,
   },
   description: {
     marginTop: 10,

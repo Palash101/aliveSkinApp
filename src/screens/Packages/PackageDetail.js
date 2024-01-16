@@ -3,6 +3,7 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import RenderHtml from 'react-native-render-html';
 import {useToast} from 'react-native-toast-notifications';
 import PageLoader from '../../components/PageLoader';
+import WebView from 'react-native-webview';
+import {Modal} from 'react-native-paper';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -27,21 +30,18 @@ const PackageDetail = props => {
   const [item, setItem] = useState({});
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const activeColor = ['#f2f2f2', '#ddd', '#babdb2'];
-  const activeColor2 = [
-    'rgba(225,215,206,1)',
-    'rgba(225,215,206,0.4)',
-    'rgba(225,215,206,0)',
-  ];
+  const [payUrl, setPayUrl] = useState('');
+  const [payModal, setPayModal] = useState(false);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       getDetail();
     });
     return unsubscribe;
   }, [props.route.params]);
-  console.log(item, 'ress');
+
   const getDetail = async () => {
-    setLoading(true)
+    setLoading(true);
     const instance = new PackageController();
     const token = await getToken();
     const result = await instance.packageDetail(
@@ -55,19 +55,53 @@ const PackageDetail = props => {
   const purchaseNow = async () => {
     const instance = new PackageController();
     const token = await getToken();
-    const result = await instance.purchasePackage(item.id, token);
-    console.log(result, 'ressult');
-    toast.show(result.msg);
+    if (token) {
+      const result = await instance.purchasePackage(item.id, token);
+      return result;
+    } else {
+      toast.show('Please login for purchase package.');
+    }
+  };
+
+  const openPaymentSheet = async () => {
+    const token = await getToken();
+    if (token) {
+      const paymentUrl = await purchaseNow();
+      console.log(paymentUrl, 'payurl');
+      setPayUrl(paymentUrl?.checkoutUrl);
+      setPayModal(true);
+      setLoading(false);
+    } else {
+      toast.show('Please login for purchase package.');
+    }
+  };
+
+  const getUserToken = async () => {
+    return await getToken();
+  };
+
+  const checkResponse = data => {
+    console.log(data.url);
+    if (data.url.includes('success')) {
+      setLoading(true);
+      setPayModal(false);
+      toast.show('Package purchased successfully.');
+      navigation.navigate('Profile');
+      setLoading(false);
+    } else if (data.url.includes('failed')) {
+      toast.show('Order has been failed.');
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.bg}>
       <PageLoader loading={loading} />
-      <View  style={styles.bg}>
+      <View style={styles.bg}>
         <View>
           <View style={{display: 'flex', flexDirection: 'row', marginTop: 0}}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Package')}
+              onPress={() => navigation.goBack()}
               style={{
                 marginLeft: 10,
                 marginTop: 55,
@@ -81,30 +115,34 @@ const PackageDetail = props => {
         </View>
         <ScrollView style={{flex: 1}}>
           <View style={styles.content}>
-            <Text style={styles.title}>{item.name}</Text>
-            <Text style={styles.category}>{item.bookings} Appointments</Text>
+            <Text style={styles.title}>{item?.name}</Text>
+            <Text style={styles.category}>{item?.bookings} Appointments</Text>
 
             <View style={[styles.priceBox, {borderColor: '#563925'}]}>
-              <Text
-                style={[
-                  styles.tag,
-                  {
-                    borderColor: '#563925',
-                    color: '#563925',
-                    backgroundColor: '#E2D8CF',
-                  },
-                ]}>
-                {item.tag}
-              </Text>
+              {item?.tag ? (
+                <Text
+                  style={[
+                    styles.tag,
+                    {
+                      borderColor: '#563925',
+                      color: '#563925',
+                      backgroundColor: '#E2D8CF',
+                    },
+                  ]}>
+                  {item?.tag}
+                </Text>
+              ) : (
+                <></>
+              )}
               <View style={styles.priceTextBox}>
                 <Text style={[styles.price, {color: '#563925'}]}>
-                  {item.price} KD
+                  {item?.price} KD
                 </Text>
-                <Text style={styles.day}>for {item.days} days</Text>
+                <Text style={styles.day}>for {item?.days} days</Text>
               </View>
               <TouchableOpacity
                 style={[styles.cartButton, {backgroundColor: '#563925'}]}
-                onPress={() => purchaseNow()}>
+                onPress={() => openPaymentSheet()}>
                 <Text style={styles.cartButtonText}>BUY NOW </Text>
               </TouchableOpacity>
             </View>
@@ -112,12 +150,64 @@ const PackageDetail = props => {
             <View style={styles.description}>
               <RenderHtml
                 contentWidth={width - 40}
-                source={{html: item.description}}
+                source={{html: item?.description}}
               />
             </View>
           </View>
         </ScrollView>
       </View>
+
+      <Modal
+        visible={payModal}
+        onDismiss={() => setPayModal(false)}
+        style={{height: 'auto'}}>
+        <View style={styles.modalBox1}>
+          <View
+            style={{
+              flexDirection: 'row',
+              borderBottomWidth: 1,
+              borderColor: '#161415',
+              marginTop: 70,
+            }}>
+            <TouchableOpacity onPress={() => setPayModal(false)}>
+              <Image
+                source={assets.back}
+                style={{width: 16, height: 16, marginLeft: 15, marginTop: 15}}
+              />
+            </TouchableOpacity>
+
+            <Text
+              style={{
+                padding: 15,
+                fontSize: 16,
+                color: '#161415',
+                fontFamily: 'Gotham-Medium',
+                textAlign: 'center',
+              }}>
+              PAY
+            </Text>
+          </View>
+
+          <ScrollView
+            contentContainerStyle={{
+              bottom: 0,
+              height: height,
+              backgroundColor: '#f9f9f9',
+            }}>
+            <WebView
+              source={{
+                uri: payUrl,
+                headers: {
+                  Authorization: 'Bearer ' + getUserToken(),
+                  Accept: 'application/json',
+                },
+              }}
+              onNavigationStateChange={data => checkResponse(data)}
+              startInLoadingState={true}
+            />
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -217,6 +307,13 @@ const styles = StyleSheet.create({
     // borderColor: '#563925',
     width: width - 40,
     marginHorizontal: 20,
+  },
+  modalBox1: {
+    paddingTop: Platform.OS === 'ios' ? 0 : 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    marginTop: 0,
   },
   footer: {
     paddingTop: 10,

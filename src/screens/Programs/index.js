@@ -52,7 +52,7 @@ const Programs = () => {
   }
 
   return (
-    <ImageBackground source={assets.bg} resizeMode="cover" style={styles.bg}>
+    <View style={styles.bg}>
       <TouchableOpacity
         style={{
           marginLeft: 20,
@@ -66,7 +66,7 @@ const Programs = () => {
           zIndex: 99
 
         }}
-        onPress={() => navigation.navigate('home')}
+        onPress={() => navigation.goBack()}
         >
         <Image
           source={assets.back}
@@ -90,7 +90,7 @@ const Programs = () => {
           />
         </View>
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 };
 export default Programs;

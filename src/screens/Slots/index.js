@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   Dimensions,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +21,7 @@ import {ScheduleController} from '../../controllers/ScheduleController';
 import {PackageController} from '../../controllers/PackageController';
 import PageLoader from '../../components/PageLoader';
 import {useToast} from 'react-native-toast-notifications';
+import WebView from 'react-native-webview';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -37,7 +39,10 @@ const Slots = () => {
 
   const [packages, setPackages] = useState([]);
   const [globalIndex, setGlobalIndex] = useState(0);
-  const {getToken} = useContext(UserContext);
+  const {getToken, getUser} = useContext(UserContext);
+  const [user, setUser] = useState();
+  const [payUrl, setPayUrl] = useState('');
+  const [payModal, setPayModal] = useState(false);
 
   const toast = useToast();
 
@@ -63,7 +68,11 @@ const Slots = () => {
 
   const getSlots = async () => {
     const token = await getToken();
-    console.log(token, 'token');
+    const newuser = await getUser();
+    if (newuser) {
+      setUser(newuser);
+    }
+    console.log(token,newuser, 'tokennewuser');
     if (token) {
       const instance = new ScheduleController();
       const result = await instance.AllSchedule(token);
@@ -108,24 +117,69 @@ const Slots = () => {
 
   const bookAppointMent = async () => {
     const token = await getToken();
-    console.log(token, 'token');
+    const user = await getUser();
+    console.log(user, token, 'useruseruser');
     if (token) {
       setLoading(true);
       const instance = new ScheduleController();
       const result = await instance.bookNow(
         selectedSlot?.id,
         selectedPackage?.id,
+        'Package',
         token,
       );
       console.log(result, 'result');
       if (result.status === 'success') {
         toast.show(result.msg);
-        navigation.navigate('home')
+        navigation.navigate('home');
         setLoading(false);
       } else {
         toast.show(result.msg);
         setLoading(false);
       }
+    }
+  };
+
+  const checkout = async () => {
+    const token = await getToken();
+    const user = await getUser();
+    console.log(user, token, 'useruseruser');
+    if (token) {
+      setLoading(true);
+      const instance = new ScheduleController();
+      const result = await instance.bookNow(
+        selectedSlot?.id,
+        '',
+        'Payment',
+        token,
+      );
+      console.log(result,'ressss')
+      if (result.status === 'error') {
+        toast.show(result.msg);
+        setLoading(false);
+      } else {
+        setPayUrl(result?.checkoutUrl);
+        setPayModal(true);
+        setLoading(false);
+      }
+    }
+  };
+
+  const getUserToken = async () => {
+    return await getToken();
+  };
+
+  const checkResponse = data => {
+    console.log(data.url);
+    if (data.url.includes('success')) {
+      setLoading(true);
+      setPayModal(false);
+      toast.show('Appointment booked successfully.');
+      navigation.navigate('home');
+      setLoading(false);
+    } else if (data.url.includes('failed')) {
+      toast.show('Appointment booking has been failed.');
+      setLoading(false);
     }
   };
 
@@ -145,7 +199,7 @@ const Slots = () => {
                 alignItems: 'center',
                 borderRadius: 5,
               }}
-              onPress={() => navigation.navigate('Home')}>
+              onPress={() => navigation.goBack()}>
               <Image
                 source={assets.back}
                 style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
@@ -164,7 +218,11 @@ const Slots = () => {
           </View>
           <ScrollView contentContainerStyle={{flex: 1}}>
             <View style={styles.outerBox}>
-              <Calendar onSelectDate={onSelectDate} globalIndex={globalIndex} />
+              <Calendar
+                currentDate={moment(new Date()).add(2, 'days')}
+                onSelectDate={onSelectDate}
+                globalIndex={globalIndex}
+              />
 
               {slots?.length ? (
                 <>
@@ -211,7 +269,7 @@ const Slots = () => {
                 </View>
               )}
 
-              {selectedSlot && (
+              {selectedSlot && packages?.length > 0 ? (
                 <>
                   <Text style={styles.avlHeading}>Select Package</Text>
                   <View style={styles.packages}>
@@ -245,18 +303,86 @@ const Slots = () => {
                     ))}
                   </View>
                 </>
+              ) : (
+                <></>
               )}
 
-              {selectedPackage && (
+              {selectedPackage ? (
                 <ThemeButton2
                   onPress={bookAppointMent}
                   style={{marginTop: 50, borderRadius: 5}}
                   label="Book Appointment"
                 />
+              ) : (
+                <>
+                  {selectedSlot &&
+                  user.type === 'Old' &&
+                  packages?.length === 0 ? (
+                    <ThemeButton2
+                      onPress={checkout}
+                      style={{marginTop: 50, borderRadius: 5}}
+                      label="Proceed to checkout"
+                    />
+                  ) : (
+                    <></>
+                  )}
+                </>
               )}
             </View>
           </ScrollView>
         </LinearGradient>
+
+        <Modal
+          visible={payModal}
+          onDismiss={() => setPayModal(false)}
+          style={{height: 'auto'}}>
+          <View style={styles.modalBox1}>
+            <View
+              style={{
+                flexDirection: 'row',
+                borderBottomWidth: 1,
+                borderColor: '#161415',
+                marginTop: 70,
+              }}>
+              <TouchableOpacity onPress={() => setPayModal(false)}>
+                <Image
+                  source={assets.back}
+                  style={{width: 16, height: 16, marginLeft: 15, marginTop: 15}}
+                />
+              </TouchableOpacity>
+
+              <Text
+                style={{
+                  padding: 15,
+                  fontSize: 16,
+                  color: '#161415',
+                  fontFamily: 'Gotham-Medium',
+                  textAlign: 'center',
+                }}>
+                PAY
+              </Text>
+            </View>
+
+            <ScrollView
+              contentContainerStyle={{
+                bottom: 0,
+                height: height,
+                backgroundColor: '#f9f9f9',
+              }}>
+              <WebView
+                source={{
+                  uri: payUrl,
+                  headers: {
+                    Authorization: 'Bearer ' + getUserToken(),
+                    Accept: 'application/json',
+                  },
+                }}
+                onNavigationStateChange={data => checkResponse(data)}
+                startInLoadingState={true}
+              />
+            </ScrollView>
+          </View>
+        </Modal>
       </View>
     </>
   );

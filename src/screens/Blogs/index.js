@@ -55,7 +55,7 @@ const Blogs = () => {
   };
 
   return (
-    <ImageBackground source={assets.bg} resizeMode="cover" style={styles.bg}>
+<View style={styles.bg}>      
       <TouchableOpacity
         style={{
           marginLeft: 20,
@@ -68,7 +68,7 @@ const Blogs = () => {
           position: 'absolute',
           zIndex: 99,
         }}
-        onPress={() => navigation.navigate('home')}>
+        onPress={() => navigation.goBack()}>
         <Image
           source={assets.back}
           style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
@@ -97,7 +97,7 @@ const Blogs = () => {
           />
         </View>
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 };
 export default Blogs;

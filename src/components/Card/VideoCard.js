@@ -35,17 +35,16 @@ const VideoCard = props => {
           <View
             style={{
               borderWidth: 2,
-              height: 54,
-              width: 54,
-              paddingVertical: 13,
-              paddingHorizontal: 15,
+              height: 30,
+              width: 30,
+              padding:5,
               borderColor: '#fff',
               borderRadius: 44,
               backgroundColor: 'rgba(255,255,255,0.3)',
             }}>
             <Image
               source={assets.play}
-              style={{width: 24, height: 24, tintColor: '#fff'}}
+              style={{width: 16, height: 16,marginLeft:2, tintColor: '#fff'}}
             />
           </View>
         </View>
@@ -62,8 +61,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginVertical: 10,
     borderRadius: 10,
-    height: 220,
-    width: width - 100,
+    height: 120,
+    width: width/2,
     overflow: 'hidden',
   },
   videoCardbg: {
@@ -72,15 +71,17 @@ const styles = StyleSheet.create({
   },
   videoTitle: {
     fontWeight: '600',
-    fontSize: 18,
-    width: width - 100,
+    fontSize: 14,
+    width: width/2,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    padding: 10,
+    padding: 5,
     fontFamily: 'Gill Sans Medium',
     textTransform: 'capitalize',
     color: '#fff',
     bottom: 0,
     position: 'absolute',
+    left: 0,
+    right: 0,
   },
   videoBottom: {
     position: 'absolute',
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     left: 0,
     right: 0,
-    top: 80,
+    top: 35,
     margin: 'auto',
     alignSelf: 'center',
     justifyContent: 'center',

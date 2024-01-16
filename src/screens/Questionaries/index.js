@@ -3,7 +3,9 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   Dimensions,
   Image,
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,8 +22,8 @@ import {
 } from '../../components/Buttons';
 import {Input} from '../../components/Input/input';
 // import DatePicker from 'react-native-datepicker';
-import DatePicker from '@react-native-community/datetimepicker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DatePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 
 import moment from 'moment';
 import {UserContext} from '../../../context/UserContext';
@@ -29,6 +31,7 @@ import {AuthContoller} from '../../controllers/AuthController';
 import PageLoader from '../../components/PageLoader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProgressStepBar from '../../components/ProgressStepBar';
+import DatePicker from 'react-native-date-picker';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -78,14 +81,16 @@ const Questionaries = () => {
     if (token) {
       const instance = new AuthContoller();
       const result = await instance.profileDetails(token);
-      if (result?.user.name != '' && result.user?.gender != '') {
-        navigation.navigate('Home');
+      console.log(result?.user?.name, 'ressss');
+
+      if (result?.user?.name && result.user?.gender) {
+        navigation.navigate('Drawer');
         setLoading(false);
       } else {
         setLoading(false);
       }
     } else {
-      navigation.navigate('Home');
+      navigation.navigate('Drawer');
     }
   };
 
@@ -114,13 +119,18 @@ const Questionaries = () => {
   const saveData = async () => {
     setLoading(true);
     const token = await getToken();
-    console.log(token);
+    console.log(data,'dobb');
+
+
     const instance = new AuthContoller();
     const result = await instance.profileUpdate(data, token);
     userCtx.setUser(result.user);
     console.log(result, 'result');
-    navigation.navigate('Home');
-    setLoading(false);
+    setTimeout(() => {
+      navigation.navigate('Drawer');
+      setLoading(false);
+    },2000)
+   
   };
 
   const setName = name => {
@@ -131,138 +141,158 @@ const Questionaries = () => {
   function showDatePicker() {
     setDatePicker(true);
   }
-  function onDateSelected(event, value) {
+  function onDateSelected(value) {
+    console.log(value,'value')
     setData({...data, dob: value});
     setCheck(!check);
   }
 
   return (
-    <View style={styles.container}>
-      <ProgressStepBar total={3} step={active + 1} />
-      <PageLoader loading={loading} />
-      <View style={{width: width}}>
-        <View style={styles.faceBox}>
-          {active > 0 ? (
-            <TouchableOpacity
-              style={styles.backBox}
-              onPress={() => setActive(active - 1)}>
-              <Image source={assets.back} style={styles.backIcon} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.backBox1}></TouchableOpacity>
-          )}
+    <>
+      {loading === true ? (
+        <PageLoader loading={loading} />
+      ) : (
+        <View style={styles.container}>
+          <ProgressStepBar total={3} step={active + 1} />
 
-          <Text style={styles.title}>
-            Hey, Help us with some quick questions
-          </Text>
 
-          <Text style={styles.label}>{questions[active]}</Text>
-        </View>
+          <KeyboardAvoidingView behavior='padding'>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              <View style={{width: width}}>
+                <View style={styles.faceBox}>
+                  {active > 0 ? (
+                    <TouchableOpacity
+                      style={styles.backBox}
+                      onPress={() => setActive(active - 1)}>
+                      <Image source={assets.back} style={styles.backIcon} />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={styles.backBox1}></TouchableOpacity>
+                  )}
 
-        <View style={styles.containerBottom}>
-          {active === 0 && (
-            <Input
-              value={data.name}
-              label={'Enter your name'}
-              onChang={setName}
-            />
-          )}
-          {active === 1 && (
-            <View style={styles.answerBox}>
-              <TouchableOpacity
-                onPress={() => setData({...data, gender: 'female'})}
-                style={[
-                  styles.answerItem,
-                  data.gender === 'female' ? styles.activeAnswer : {},
-                ]}>
-                <Text
-                  style={[
-                    styles.answerText,
-                    data.gender === 'female' ? styles.activeAnswerText : {},
-                  ]}>
-                  FEMALE
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setData({...data, gender: 'male'})}
-                style={[
-                  styles.answerItem,
-                  data.gender === 'male' ? styles.activeAnswer : {},
-                ]}>
-                <Text
-                  style={[
-                    styles.answerText,
-                    data.gender === 'male' ? styles.activeAnswerText : {},
-                  ]}>
-                  MALE
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          {active === 2 && (
-            <View style={{position: 'relative'}}>
-              <Text
-                style={{
-                  paddingTop: 15,
-                  fontSize: 12,
-                  color: '#333',
-                  marginLeft: 15,
-                }}>
-                BIRTH DATE
-              </Text>
-              <View style={{marginTop: -25}}>
-                <TouchableOpacity
-                  style={{
-                    height: 50,
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 10,
-                    zIndex: 999,
-                  }}
-                  onPress={() => showDatePicker()}></TouchableOpacity>
-                <Input
-                  value={moment(data.dob).format('YYYY-MM-DD')}
-                  onChangeText={() => console.log('')}
-                  label={' '}
-                  disabled={true}
-                />
+                  <Text style={styles.title}>
+                    Hey, Help us with some quick questions
+                  </Text>
+                  <Image source={assets.qbg} style={styles.logo} />
+                  <Text style={styles.label}>{questions[active]}</Text>
+                </View>
+
+                <View style={styles.containerBottom}>
+                  {active === 0 && (
+                    <Input
+                      value={data.name}
+                      label={'Enter your name'}
+                      onChang={setName}
+                    />
+                  )}
+                  {active === 1 && (
+                    <View style={styles.answerBox}>
+                      <TouchableOpacity
+                        onPress={() => setData({...data, gender: 'female'})}
+                        style={[
+                          styles.answerItem,
+                          data.gender === 'female' ? styles.activeAnswer : {},
+                        ]}>
+                        <Text
+                          style={[
+                            styles.answerText,
+                            data.gender === 'female' ? styles.activeAnswerText : {},
+                          ]}>
+                          FEMALE
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setData({...data, gender: 'male'})}
+                        style={[
+                          styles.answerItem,
+                          data.gender === 'male' ? styles.activeAnswer : {},
+                        ]}>
+                        <Text
+                          style={[
+                            styles.answerText,
+                            data.gender === 'male' ? styles.activeAnswerText : {},
+                          ]}>
+                          MALE
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {active === 2 && (
+                    <View style={{position: 'relative'}}>
+                      <Text
+                        style={{
+                          paddingTop: 15,
+                          fontSize: 12,
+                          color: '#333',
+                          marginLeft: 15,
+                        }}>
+                        BIRTH DATE
+                      </Text>
+                      <View style={{marginTop: -25}}>
+                        <TouchableOpacity
+                          style={{
+                            height: 50,
+                            position: 'absolute',
+                            left: 0,
+                            right: 0,
+                            top: 10,
+                            zIndex: 999,
+                          }}
+                          onPress={() => showDatePicker()}></TouchableOpacity>
+                        <Input
+                         value={moment(data.dob).format("YYYY-MM-DD")}
+                          onChangeText={() => console.log('')}
+                          label={' '}
+                          disabled={true}
+                        />
+                      </View>
+                     
+                    </View>
+                  )}
+
+                  {disable === true ? (
+                    <RoundedDefaultButton style={styles.button} label={'Next'} />
+                  ) : (
+                    <ThemeButton
+                      style={styles.button}
+                      onPress={() => next()}
+                      label={'Next'}
+                    />
+                  )}
+                </View>
               </View>
-            </View>
-          )}
-
-          {disable === true ? (
-            <RoundedDefaultButton style={styles.button} label={'Next'} />
-          ) : (
-            <ThemeButton
-              style={styles.button}
-              onPress={() => next()}
-              label={'Next'}
+            </ScrollView>
+            <DatePicker
+              modal
+              open={datePicker}
+              mode="date"
+              date={new Date(data.dob)}
+              onConfirm={date => {
+                setDatePicker(false);
+                onDateSelected(date);
+              }}
+              onCancel={() => {
+                setDatePicker(false);
+              }}
             />
-          )}
+          </KeyboardAvoidingView>
+
+
+
+          {/* {datePicker && (
+            <DateTimePicker
+              value={data.dob}
+              mode={'date'}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              is24Hour={true}
+              onChange={onDateSelected}
+              maximumDate={maxDate}
+              textColor="#333"
+            />
+          )} */}
         </View>
-      </View>
-      {datePicker && (
-        <DateTimePicker
-          value={data.dob}
-          mode={'date'}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          is24Hour={true}
-          onChange={onDateSelected}
-          maximumDate={maxDate}
-          textColor="#333"
-        />
-        // <DatePicker
-        //   value={dob}
-        //   mode={'date'}
-        //   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-        //   is24Hour={true}
-        //   onChange={onDateSelected}
-        //   maximumDate={maxDate}
-        //   textColor="#333"
-        // />
       )}
-    </View>
+    </>
   );
 };
 export default Questionaries;
@@ -280,6 +310,11 @@ const styles = StyleSheet.create({
   },
   activeAnswer: {
     backgroundColor: '#E2D8CF',
+  },
+  logo: {
+    width: width - 100,
+    height: height - 610,
+    alignSelf: 'center',
   },
   answerBox: {
     display: 'flex',

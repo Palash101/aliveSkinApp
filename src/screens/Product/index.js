@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
   Image,
   ImageBackground,
@@ -45,18 +46,19 @@ const Product = () => {
   const [cartData, serCartData] = useState(0);
   const [search, setSearch] = useState();
 
+  const scrollY = new Animated.Value(0);
+
   useEffect(() => {
+    getCategories();
+    getBrands();
+    getRecomandProducts();
+    getallProducts();
     const unsubscribe = navigation.addListener('focus', () => {
       AsyncStorage.getItem('CartData', (_err, result) => {
         if (result) {
           serCartData(JSON.parse(result));
         }
       });
-
-      getCategories();
-      getBrands();
-      getRecomandProducts();
-      getallProducts();
     });
     return unsubscribe;
   }, []);
@@ -160,10 +162,18 @@ const Product = () => {
     navigation.navigate('SearchProducts', {search: search});
   };
 
+  const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
+    const paddingToBottom = 20;
+    return (
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom
+    );
+  };
+
   return (
     <View style={styles.bg}>
       <TouchableOpacity
-        onPress={() => navigation.navigate('home')}
+        onPress={() => navigation.goBack()}
         style={{
           marginLeft: 10,
           marginTop: 55,
@@ -321,7 +331,16 @@ const Product = () => {
 
       {activeCategory?.name != 'Featured' &&
         activeCategory?.name != 'Brands' && (
-          <ScrollView style={{flex: 1, padding: 15, marginTop: 0}}>
+          <ScrollView
+            style={{flex: 1, padding: 15, marginTop: 0}}
+            onScroll={Animated.event([
+              {nativeEvent: {contentOffset: {y: scrollY}}},
+            ])}
+            onMomentumScrollEnd={({nativeEvent}) => {
+              if (isCloseToBottom(nativeEvent)) {
+                loadClick();
+              }
+            }}>
             <View style={[styles.section, {paddingBottom: 80}]}>
               <View style={[styles.AllProductSection]}>
                 {products?.map((item, index) => (
@@ -334,7 +353,7 @@ const Product = () => {
                 ))}
               </View>
               {loadMore && <ActivityIndicator />}
-              {total != products?.length && (
+              {/* {total != products?.length && (
                 <>
                   {!loadMore && (
                     <TouchableOpacity
@@ -352,7 +371,7 @@ const Product = () => {
                     </TouchableOpacity>
                   )}
                 </>
-              )}
+              )} */}
             </View>
           </ScrollView>
         )}

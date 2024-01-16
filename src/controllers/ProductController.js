@@ -53,7 +53,7 @@ export class ProductContoller {
   }
 
   async recommandProducts(token) {
-    return fetch(API_BASE + `/user/recomendation`, {
+    return fetch(API_BASE + '/user/recomendation', {
       headers: {
         Authorization: 'Bearer ' + token,
         Accept: 'application/json',
@@ -90,7 +90,6 @@ export class ProductContoller {
   }
 
   async checkCode(id, code) {
-
     const newdata = new FormData();
     newdata.append('code', code);
 
@@ -170,11 +169,11 @@ export class ProductContoller {
   }
 
   async checkout(data, token) {
-    console.log(JSON.stringify(data), token);
+    // console.log(JSON.stringify(data), token);
 
     return fetch(API_BASE + '/order', {
       headers: {
-        Authorization: 'Bearer ' + token,
+        // Authorization: 'Bearer ' + token,
         Accept: 'application/json',
       },
       method: 'POST',
@@ -182,6 +181,129 @@ export class ProductContoller {
     })
       .then(response => response.json())
       .then(responseJson => {
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async allAddress(token) {
+    console.log(token);
+    return fetch(API_BASE + '/user/address', {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async addAddress(data, token) {
+    console.log(data, token);
+
+    return fetch(API_BASE + '/user/address', {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      method: 'POST',
+      body: data,
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async updateAddress(data, id, token) {
+    return fetch(API_BASE + `/user/address/${id}/update`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      method: 'POST',
+      body: data,
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async deleteAddress(id, token) {
+    return fetch(API_BASE + `/user/address/${id}/delete`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      method: 'POST',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async productHistory(token) {
+    return fetch(API_BASE + '/order', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/json',
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async cancelOrder(notes, id, token) {
+    const newdata = new FormData();
+    newdata.append('type', 'Cancelled');
+    newdata.append('notes', notes);
+
+    return fetch(API_BASE + `/order/change/${id}/status`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      method: 'POST',
+      body: newdata,
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
         return responseJson;
       })
       .catch(error => {

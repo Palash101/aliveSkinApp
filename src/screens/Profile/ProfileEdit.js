@@ -3,21 +3,20 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   Dimensions,
   Image,
-  Platform,
+  KeyboardAvoidingView,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  DatePickerIOS,
+  Platform,
 } from 'react-native';
 import {assets} from '../../config/AssetsConfig';
 import {
   RoundedDarkButton,
   RoundedDefaultButton,
-  RoundedGreyButton,
-  RoundedGreyButton2,
   ThemeButton,
-  ThemeButton2,
 } from '../../components/Buttons';
 import {Input} from '../../components/Input/input';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -28,7 +27,8 @@ import {AuthContoller} from '../../controllers/AuthController';
 import PageLoader from '../../components/PageLoader';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import {ModalView} from '../../components/ModalView';
-import { IMAGE_BASE } from '../../config/ApiConfig';
+import {IMAGE_BASE} from '../../config/ApiConfig';
+import DatePicker from 'react-native-date-picker';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -45,12 +45,14 @@ const ProfileEdit = () => {
   const [check, setCheck] = useState(true);
   const [data, setData] = useState({
     name: '',
+    email: '',
     gender: '',
     dob: maxDate,
   });
   const [singleFile, setSingleFile] = useState('');
   const [open, setOpen] = useState(false);
   const [image, setImage] = useState('');
+  const [date, setDate] = useState(new Date());
 
   useEffect(() => {
     getUserDetail();
@@ -82,12 +84,17 @@ const ProfileEdit = () => {
 
   const getUserDetail = async () => {
     const userDetail = await getUser();
+    console.log(userDetail, 'userrr');
     setData({
-      name: userDetail.name,
-      gender: userDetail.gender,
-      dob: userDetail.dob,
+      name: userDetail?.name,
+      email: userDetail?.email === null ? '' : userDetail.email,
+      gender: userDetail?.gender,
+      dob: userDetail?.dob === null ? maxDate : userDetail.dob,
     });
-    setImage(IMAGE_BASE + '/' + userDetail.image);
+    if (userDetail?.image === '' || userDetail?.image === null) {
+    } else {
+      setImage(IMAGE_BASE + '/' + userDetail?.image);
+    }
   };
 
   const [active, setActive] = useState(0);
@@ -103,13 +110,12 @@ const ProfileEdit = () => {
 
     let newData = data;
     if (singleFile?.uri) {
-        newData.image = {
-          uri: singleFile.uri,
-          type: singleFile.type,
-          name: singleFile.fileName,
-        };
-      }
-
+      newData.image = {
+        uri: singleFile.uri,
+        type: singleFile.type,
+        name: singleFile.fileName,
+      };
+    }
 
     const instance = new AuthContoller();
     const result = await instance.profileUpdate(newData, token);
@@ -123,11 +129,15 @@ const ProfileEdit = () => {
     setData({...data, name: name});
     setCheck(!check);
   };
+  const setEmail = email => {
+    setData({...data, email: email});
+    setCheck(!check);
+  };
 
   function showDatePicker() {
     setDatePicker(true);
   }
-  function onDateSelected(event, value) {
+  function onDateSelected(value) {
     setData({...data, dob: value});
     setCheck(!check);
   }
@@ -186,140 +196,171 @@ const ProfileEdit = () => {
     <View style={styles.container}>
       <PageLoader loading={loading} />
 
-      <View style={{width: width}}>
-        <View style={styles.faceBox}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Profile')}
-            style={{
-              marginLeft: 0,
-              marginTop: 40,
-            }}>
-            <Image
-              source={assets.back}
-              style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
-            />
-          </TouchableOpacity>
-          <Text
-            style={{
-              alignSelf: 'center',
-              marginTop: -20,
-              fontFamily: 'Gotham-Medium',
-            }}>
-            Profile
-          </Text>
-
-          <TouchableOpacity onPress={() => selectOneFile()}>
-            {image ? (
-              <Image
-                source={assets.profile}
-                style={[styles.prImg, {tintColor: '#888'}]}
-              />
-            ) : (
-              <Image source={{uri: image}} style={styles.prImg} />
-            )}
-
-            <View style={styles.editBox}>
-              <Image source={assets.edit} style={styles.editIcon} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.containerBottom}>
-          <Input value={data.name} label={'NAME'} onChang={setName} />
-
-          <Text
-            style={{
-              marginTop: 20,
-              paddingLeft: 10,
-              paddingBottom: 10,
-              fontSize: 12,
-              color: '#333',
-            }}>
-            GENDER
-          </Text>
-          <View style={styles.answerBox}>
-            <TouchableOpacity
-              onPress={() => setData({...data, gender: 'Female'})}
-              style={[
-                styles.answerItem,
-                data.gender === 'Female' ? styles.activeAnswer : {},
-              ]}>
-              <Text
-                style={[
-                  styles.answerText,
-                  data.gender === 'Female' ? styles.activeAnswerText : {},
-                ]}>
-                FEMALE
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setData({...data, gender: 'Male'})}
-              style={[
-                styles.answerItem,
-                data.gender === 'Male' ? styles.activeAnswer : {},
-              ]}>
-              <Text
-                style={[
-                  styles.answerText,
-                  data.gender === 'Male' ? styles.activeAnswerText : {},
-                ]}>
-                MALE
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={{position: 'relative'}}>
-            <Text
-              style={{
-                paddingTop: 15,
-                fontSize: 12,
-                color: '#333',
-                marginLeft: 15,
-              }}>
-              BIRTH DATE
-            </Text>
-            <View style={{marginTop: -25}}>
+      <KeyboardAvoidingView behavior="padding">
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <View style={{width: width}}>
+            <View style={styles.faceBox}>
               <TouchableOpacity
+                onPress={() => navigation.goBack()}
                 style={{
-                  height: 50,
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 10,
-                  zIndex: 999,
-                }}
-                onPress={() => showDatePicker()}></TouchableOpacity>
-              <Input
-                value={moment(data.dob).format('YYYY-MM-DD')}
-                onChangeText={() => console.log('')}
-                label={' '}
-                disabled={true}
-              />
+                  marginLeft: 0,
+                  marginTop: 40,
+                }}>
+                <Image
+                  source={assets.back}
+                  style={{
+                    width: 16,
+                    height: 16,
+                    tintColor: '#000',
+                    marginTop: 5,
+                  }}
+                />
+              </TouchableOpacity>
+              <Text
+                style={{
+                  alignSelf: 'center',
+                  marginTop: -20,
+                  fontFamily: 'Gotham-Medium',
+                }}>
+                Profile
+              </Text>
+
+              <TouchableOpacity onPress={() => selectOneFile()}>
+                {image == '' || image == null ? (
+                  <Image
+                    source={assets.profile}
+                    style={[styles.prImg, {tintColor: '#888'}]}
+                  />
+                ) : (
+                  <Image source={{uri: image}} style={styles.prImg} />
+                )}
+
+                <View style={styles.editBox}>
+                  <Image source={assets.edit} style={styles.editIcon} />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.containerBottom}>
+              <Input value={data.name} label={'NAME'} onChang={setName} />
+
+              <Input value={data.email} label={'Email'} onChang={setEmail} />
+
+              <Text
+                style={{
+                  marginTop: 20,
+                  paddingLeft: 10,
+                  paddingBottom: 10,
+                  fontSize: 12,
+                  color: '#333',
+                }}>
+                GENDER
+              </Text>
+              <View style={styles.answerBox}>
+                <TouchableOpacity
+                  onPress={() => setData({...data, gender: 'Female'})}
+                  style={[
+                    styles.answerItem,
+                    data.gender === 'Female' ? styles.activeAnswer : {},
+                  ]}>
+                  <Text
+                    style={[
+                      styles.answerText,
+                      data.gender === 'Female' ? styles.activeAnswerText : {},
+                    ]}>
+                    FEMALE
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setData({...data, gender: 'Male'})}
+                  style={[
+                    styles.answerItem,
+                    data.gender === 'Male' ? styles.activeAnswer : {},
+                  ]}>
+                  <Text
+                    style={[
+                      styles.answerText,
+                      data.gender === 'Male' ? styles.activeAnswerText : {},
+                    ]}>
+                    MALE
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={{position: 'relative'}}>
+                <Text
+                  style={{
+                    paddingTop: 15,
+                    fontSize: 12,
+                    color: '#333',
+                    marginLeft: 15,
+                  }}>
+                  BIRTH DATE
+                </Text>
+                <View style={{marginTop: -25}}>
+                  <TouchableOpacity
+                    style={{
+                      height: 50,
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 10,
+                      zIndex: 999,
+                    }}
+                    onPress={() => showDatePicker()}></TouchableOpacity>
+                  <Input
+                    value={moment(data.dob).format("YYYY-MM-DD")}
+                    onChangeText={() => console.log('')}
+                    label={' '}
+                    disabled={true}
+                  />
+                </View>
+              </View>
+
+              {disable === true ? (
+                <RoundedDefaultButton
+                  style={styles.button}
+                  onPress={() => console.log()}
+                  label={'Next'}
+                />
+              ) : (
+                <ThemeButton
+                  style={styles.button}
+                  onPress={() => next()}
+                  label={'Update'}
+                />
+              )}
             </View>
           </View>
-
-          {disable === true ? (
-            <RoundedDefaultButton style={styles.button} label={'Next'} />
-          ) : (
-            <ThemeButton
-              style={styles.button}
-              onPress={() => next()}
-              label={'Update'}
-            />
-          )}
-        </View>
-      </View>
-      {datePicker && (
-        <DateTimePicker
-          value={data.dob}
-          mode={'date'}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          is24Hour={true}
-          onChange={onDateSelected}
-          maximumDate={maxDate}
-          textColor="#333"
+        </ScrollView>
+        <DatePicker
+          modal
+          open={datePicker}
+          mode="date"
+          date={new Date(data.dob)}
+          onConfirm={date => {
+            setDatePicker(false);
+            onDateSelected(date);
+          }}
+          onCancel={() => {
+            setDatePicker(false);
+          }}
         />
-      )}
+      </KeyboardAvoidingView>
+      {/* {datePicker && (
+        <>
+          <DateTimePicker
+            value={data.dob}
+            mode={'date'}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            is24Hour={true}
+            onChange={onDateSelected}
+            maximumDate={maxDate}
+            textColor="#333"
+          />
+
+        </>
+      )} */}
 
       <ModalView
         visible={open}

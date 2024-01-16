@@ -19,7 +19,7 @@ export const LikeSection = ({
             tintColor: liked === 'Liked' ? 'red' : '#888',
           }}
         />
-        <Text style={styles.likeText}>{likeCount}</Text>
+        <Text style={styles.likeText}>{likeCount > 0 ? likeCount:''}</Text>
       </TouchableOpacity>
       <View style={styles.viewBox}>
        
@@ -27,7 +27,7 @@ export const LikeSection = ({
           source={assets.view}
           style={{width: 20, height: 20, tintColor: '#888'}}
         />
-        <Text style={styles.viewText}>{viewCount}</Text>
+        <Text style={styles.viewText}>{viewCount > 0 ? viewCount : ''}</Text>
       </View>
     </View>
   );

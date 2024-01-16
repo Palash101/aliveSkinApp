@@ -64,7 +64,7 @@ const SlotHistory = () => {
     <View style={styles.container}>
       <LinearGradient colors={activeColor} style={styles.card1}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('home')}
+          onPress={() => navigation.goBack()}
           style={{
             marginLeft: 15,
             marginTop: 60,
@@ -85,7 +85,10 @@ const SlotHistory = () => {
         <ScrollView
           style={{flex: 1}}
           contentContainerStyle={{padding: 10, paddingBottom: 20}}>
+               
             <Text style={styles.sectionHeading}>Upcoming Bookings</Text>
+            {(upcoming && upcoming.length > 0) ?         
+            <>
             {upcoming.map((item, index) => (
             <View style={styles.sectionBox}>
               <View style={styles.bookingBox}>
@@ -99,7 +102,14 @@ const SlotHistory = () => {
               <Text style={{fontSize:12,alignSelf:'flex-end'}}>{moment(item.date).format('DD MMM @ HH:mm A')}</Text>
             </View>
           ))}
- <Text style={styles.sectionHeading}>Past Bookings</Text>
+          </>
+          :
+          <Text style={{fontSize:12,marginVertical:40,textAlign:'center'}}>No upcoming bookings found</Text>
+          }
+
+          <Text style={styles.sectionHeading}>Past Bookings</Text>
+          {(data && data.length > 0) ?   
+          <>
           {data.map((item, index) => (
             <View style={styles.sectionBox}>
               <View style={styles.bookingBox}>
@@ -113,6 +123,12 @@ const SlotHistory = () => {
               <Text style={{fontSize:12,alignSelf:'flex-end'}}>{moment(item.date).format('DD MMM @ HH:mm A')}</Text>
             </View>
           ))}
+          </>
+          :
+          <Text style={{fontSize:12,marginVertical:40,textAlign:'center'}}>No past bookings found</Text>
+          }
+
+
         </ScrollView>
       </LinearGradient>
     </View>

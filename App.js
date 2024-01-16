@@ -2,10 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import ScreenNavigationStack from './src/navigation/ScreenNavigation';
 import {ToastProvider} from 'react-native-toast-notifications';
-import {Dimensions, StatusBar, StyleSheet, Text, View} from 'react-native';
+import {Dimensions, PermissionsAndroid, StatusBar, StyleSheet, Text, View} from 'react-native';
 import AuthNavigationStack from './src/navigation/AuthNavigation';
 import UserProvider, {UserConsumer} from './context/UserContext';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import messaging from '@react-native-firebase/messaging';
+import { notificationListener, requestUserPermission } from './src/utils/fcm';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,26 @@ const App = () => {
     setTimeout(() => {
       setLoading(false);
     }, 1500);
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      console.log(remoteMessage, 'remoteMessage');
+    });
+    return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    registerAppWithFCM();
+    requestUserPermission();
+    notificationListener();
+  }, []);
+
+  const registerAppWithFCM = async () => {
+    await messaging().registerDeviceForRemoteMessages();
+  };
+
 
   return (
     <>
@@ -42,7 +63,7 @@ const App = () => {
                   return (
                     <NavigationContainer>
                       {auth === true && <ScreenNavigationStack />}
-                      {!auth && <AuthNavigationStack />}
+                      {!auth && <ScreenNavigationStack />}
                     </NavigationContainer>
                   );
                 }}
