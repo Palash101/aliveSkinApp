@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
 
   card1: {
     flex: 1,
-    marginTop: -30,
+    marginTop: -15,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

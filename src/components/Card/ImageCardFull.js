@@ -24,7 +24,18 @@ const ImageCardFull = props => {
         source={{uri: IMAGE_BASE + item?.headerImage}}
         resizeMode="cover"
         style={styles.videoCardbg}>
-        <View style={styles.tags}>
+        
+        <LikeSection
+            like={() => console.log()}
+            liked={item?.my_like?.like === 'Liked' ? 'Liked' : 'Uniked'}
+            likeCount={item?.like_count}
+            viewCount={item?.view_count}
+            commentCount={item?.view_count}
+          />
+
+       
+      </ImageBackground>
+      <View style={styles.tags}>
           {item?.tags &&
             JSON.parse(item?.tags)
               ?.slice(0, 3)
@@ -34,21 +45,12 @@ const ImageCardFull = props => {
                 </Text>
               ))}
         </View>
-        <LikeSection
-            like={() => console.log()}
-            liked={item?.my_like?.like === 'Liked' ? 'Liked' : 'Uniked'}
-            likeCount={item?.like_count}
-            viewCount={item?.view_count}
-            commentCount={item?.view_count}
-          />
-
-        <View style={styles.content}>
+      <View style={styles.content}>
           <Text style={styles.title}>{item?.title}</Text>
           <Text style={styles.para}>
             Posted on {moment(item?.updated_at).format('LL')}
           </Text>
         </View>
-      </ImageBackground>
     </TouchableOpacity>
   );
 };
@@ -97,10 +99,10 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: '#E2D8CF',
     padding: 10,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    // position: 'absolute',
+    // bottom: 0,
+    // left: 0,
+    // right: 0,
   },
   title: {
     color: '#000',
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     position: 'absolute',
-    bottom: 60,
+    bottom: 75,
     left: 10,
     right: 10,
   },

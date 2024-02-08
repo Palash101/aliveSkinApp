@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Gill Sans Medium',
     fontSize: 22,
     marginTop: -5,
+    width:width - 140
   },
   status: {
     color: '#000',
@@ -111,6 +112,8 @@ const styles = StyleSheet.create({
   dayBox: {
     textAlign: 'center',
     borderRadius: 50,
+    position:'absolute',
+    right:0,
   },
   expireText: {
     fontFamily: 'Gotham-Medium',

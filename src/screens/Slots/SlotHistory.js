@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -11,14 +12,13 @@ import {
   View,
 } from 'react-native';
 import {assets} from '../../config/AssetsConfig';
-import {IMAGE_BASE} from '../../config/ApiConfig';
 import {UserContext} from '../../../context/UserContext';
-import {NotificationIcon} from '../../components/NotificationIcon';
 import LinearGradient from 'react-native-linear-gradient';
 import moment from 'moment';
-import {PackageController} from '../../controllers/PackageController';
-import {PackageItem} from '../../components/PackageItem';
 import {ScheduleController} from '../../controllers/ScheduleController';
+import AppointmentCard from '../../components/Card/AppointmentCard';
+import {useToast} from 'react-native-toast-notifications';
+import PageLoader from '../../components/PageLoader';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -33,6 +33,9 @@ const SlotHistory = () => {
   ];
   const [data, setData] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const toast = useToast();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -44,94 +47,123 @@ const SlotHistory = () => {
   const getBookings = async () => {
     const token = await getToken();
     if (token) {
+      console.log(token, 'token');
       const instance = new ScheduleController();
       const result = await instance.allBookings(token);
+
       const filterData = result.bookings.filter(
         item =>
           moment(item.date).isSame(new Date()) ||
           moment(item.date).isAfter(new Date()),
       );
-      setUpcoming(filterData);
+      setUpcoming(
+        filterData.sort(
+          (a, b) => moment(a.date).unix() - moment(b.date).unix(),
+        ),
+      );
 
       const allData = result.bookings.filter(item =>
         moment(item.date).isBefore(new Date()),
       );
-      setData(allData);
+      setData(
+        allData.sort((a, b) => moment(a.date).unix() - moment(b.date).unix()),
+      );
     }
+  };
+  const goChat = item => {
+    navigation.navigate('Chat', {item: item});
+  };
+
+  const Cancel = async item => {
+    Alert.alert(
+      'Confirm',
+      'Are you sure? you want to cancel your appointment.',
+      [
+        {
+          text: 'No',
+          onPress: () => {},
+        },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            setLoading(true);
+            const token = await getToken();
+            const instance = new ScheduleController();
+            const result = await instance.cancelOrder(item, token);
+            console.log(result, 'resultt');
+            toast.show('Your appointment has been canceled successfully');
+            getBookings();
+            setLoading(false);
+          },
+        },
+      ],
+      {cancelable: false},
+    );
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={activeColor} style={styles.card1}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{
-            marginLeft: 15,
-            marginTop: 60,
-          }}>
-          <Image
-            source={assets.back}
-            style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
-          />
-        </TouchableOpacity>
-        <Text
-          style={{
-            alignSelf: 'center',
-            marginTop: -20,
-            fontFamily: 'Gotham-Medium',
-          }}>
-          Appointments
-        </Text>
-        <ScrollView
-          style={{flex: 1}}
-          contentContainerStyle={{padding: 10, paddingBottom: 20}}>
-               
+    <>
+      <PageLoader loading={loading} />
+      <View style={styles.container}>
+        <LinearGradient colors={activeColor} style={styles.card1}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{
+              marginLeft: 15,
+              marginTop: 60,
+            }}>
+            <Image
+              source={assets.back}
+              style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
+            />
+          </TouchableOpacity>
+          <Text
+            style={{
+              alignSelf: 'center',
+              marginTop: -20,
+              fontFamily: 'Gotham-Medium',
+            }}>
+            Appointments
+          </Text>
+          <ScrollView
+            style={{flex: 1, marginTop: 15}}
+            contentContainerStyle={{padding: 10, paddingBottom: 20}}>
             <Text style={styles.sectionHeading}>Upcoming Bookings</Text>
-            {(upcoming && upcoming.length > 0) ?         
-            <>
-            {upcoming.map((item, index) => (
-            <View style={styles.sectionBox}>
-              <View style={styles.bookingBox}>
-                <Text style={styles.date}>
-                  Date: {moment(item.date).format('DD MMM, YYYY')}
-                </Text>
-                <Text style={styles.time}>
-                  Time: {moment(item.date).format('HH:mm A')}
-                </Text>
-              </View>
-              <Text style={{fontSize:12,alignSelf:'flex-end'}}>{moment(item.date).format('DD MMM @ HH:mm A')}</Text>
-            </View>
-          ))}
-          </>
-          :
-          <Text style={{fontSize:12,marginVertical:40,textAlign:'center'}}>No upcoming bookings found</Text>
-          }
+            {upcoming && upcoming.length > 0 ? (
+              <>
+                {upcoming.map((item, index) => (
+                  <AppointmentCard
+                    item={item}
+                    upcoming={true}
+                    Cancel={Cancel}
+                    goChat={goChat}
+                  />
+                ))}
+              </>
+            ) : (
+              <Text
+                style={{fontSize: 12, marginVertical: 40, textAlign: 'center'}}>
+                No upcoming bookings found
+              </Text>
+            )}
 
-          <Text style={styles.sectionHeading}>Past Bookings</Text>
-          {(data && data.length > 0) ?   
-          <>
-          {data.map((item, index) => (
-            <View style={styles.sectionBox}>
-              <View style={styles.bookingBox}>
-                <Text style={styles.date}>
-                  Date: {moment(item.date).format('DD MMM, YYYY')}
-                </Text>
-                <Text style={styles.time}>
-                  Time: {moment(item.date).format('HH:mm A')}
-                </Text>
-              </View>
-              <Text style={{fontSize:12,alignSelf:'flex-end'}}>{moment(item.date).format('DD MMM @ HH:mm A')}</Text>
-            </View>
-          ))}
-          </>
-          :
-          <Text style={{fontSize:12,marginVertical:40,textAlign:'center'}}>No past bookings found</Text>
-          }
-
-
-        </ScrollView>
-      </LinearGradient>
-    </View>
+            <Text style={styles.sectionHeading}>Past Bookings</Text>
+            {data && data.length > 0 ? (
+              <>
+                {data.map((item, index) => (
+                  <AppointmentCard item={item} upcoming={false} />
+                ))}
+              </>
+            ) : (
+              <Text
+                style={{fontSize: 12, marginVertical: 40, textAlign: 'center'}}>
+                No past bookings found
+              </Text>
+            )}
+          </ScrollView>
+        </LinearGradient>
+      </View>
+    </>
   );
 };
 export default SlotHistory;
@@ -140,31 +172,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  bookingBox: {
-    alignItems:'flex-start'
-  },
-  bidBox: {
-    paddingHorizontal: 10,
-  },
-  bid: {
-    fontFamily: 'Gotham-Medium',
-    fontSize: 12,
-  },
-  date: {
-    fontFamily: 'Gotham-Medium',
-    textAlign: 'center',
-  },
-  at: {
-    fontFamily: 'Gotham-Medium',
-    textAlign: 'center',
-    marginHorizontal: 10,
-  },
-  time: {
-    fontFamily: 'Gotham-Medium',
-    textAlign: 'center',
-    fontSize: 14,
-    marginTop:10
-  },
+
   medal: {
     width: 18,
     height: 18,
@@ -251,7 +259,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 16,
     fontFamily: 'Gill Sans Medium',
-    marginTop:20,
-    marginLeft:10
+    marginTop: 20,
+    marginLeft: 10,
   },
 });

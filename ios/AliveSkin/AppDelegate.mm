@@ -1,6 +1,9 @@
 #import "AppDelegate.h"
 #import <Firebase.h>
 #import <React/RCTBundleURLProvider.h>
+#import <RNScreenshotDetector/RNScreenshotDetector.h>
+#import <React/RCTRootView.h>
+
 
 @implementation AppDelegate
 
@@ -10,8 +13,15 @@
   self.moduleName = @"AliveSkin";
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
-  self.initialProps = @{};
+    //RCTRootView *rootView = [[RCTRootView alloc] init];
 
+  
+  self.initialProps = @{};
+  
+
+//  RNScreenshotDetector* screenshotDetector = [[RNScreenshotDetector alloc] init];
+//  [screenshotDetector setupAndListen:rootView.bridge];
+  
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 

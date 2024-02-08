@@ -59,24 +59,8 @@ const ProfileEdit = () => {
   }, []);
 
   useEffect(() => {
-    if (active === 0) {
-      if (data.name != '') {
-        setDisable(false);
-      } else {
-        setDisable(true);
-      }
-    } else if (active === 1) {
-      if (data.gender != '') {
-        setDisable(false);
-      } else {
-        setDisable(true);
-      }
-    } else if (active === 2) {
-      if (data.dob != '') {
-        setDisable(false);
-      } else {
-        setDisable(true);
-      }
+    if (data.name != '' && data.gender != '' && data.dob != '' && data.email != '') {
+      setDisable(false);
     } else {
       setDisable(true);
     }
@@ -164,6 +148,7 @@ const ProfileEdit = () => {
         let imageUri = response.uri || response.assets?.[0]?.uri;
         console.log(response, 'response');
         setImage(imageUri);
+        setDisable(false);
         setSingleFile(response.assets ? response.assets[0] : response);
       }
     });
@@ -187,6 +172,7 @@ const ProfileEdit = () => {
         let imageUri = response.uri || response.assets?.[0]?.uri;
         console.log(response, 'response');
         setImage(imageUri);
+        setDisable(false);
         setSingleFile(response.assets ? response.assets[0] : response);
       }
     });
@@ -309,7 +295,7 @@ const ProfileEdit = () => {
                     }}
                     onPress={() => showDatePicker()}></TouchableOpacity>
                   <Input
-                    value={moment(data.dob).format("YYYY-MM-DD")}
+                    value={moment(data.dob).format('YYYY-MM-DD')}
                     onChangeText={() => console.log('')}
                     label={' '}
                     disabled={true}

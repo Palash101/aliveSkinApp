@@ -31,6 +31,11 @@ import Login from '../screens/Auth/Login';
 import SlotQuestions from '../screens/Questionaries/SlotQuestions';
 import ProductHistory from '../screens/Product/ProductHistory';
 import Welcome from '../screens/Auth/Welcome';
+import Chat from '../screens/Chat';
+import Notification from '../screens/Notification';
+import Consulation from '../screens/Consulation';
+import Pdfs from '../screens/Pdfs';
+import PdfDetail from '../screens/Pdfs/PdfDetails';
 
 const width = Dimensions.get('window').width;
 
@@ -272,6 +277,42 @@ const ScreenNavigationStack = ({navigation}) => {
           // headerTitle: props => <LogoTitle {...props} />,
         }}
       />
+      <Stack.Screen
+        name="Chat"
+        component={Chat}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Notification"
+        component={Notification}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Consulation"
+        component={Consulation}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Pdfs"
+        component={Pdfs}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="PdfDetail"
+        component={PdfDetail}
+        options={{
+          headerShown: false,
+        }}
+      />
+
     </Stack.Navigator>
   );
 };

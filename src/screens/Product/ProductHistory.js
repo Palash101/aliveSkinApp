@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
   Alert,
@@ -21,11 +20,12 @@ import {ProductContoller} from '../../controllers/ProductController';
 import {ModalView} from '../../components/ModalView';
 import {useToast} from 'react-native-toast-notifications';
 import PageLoader from '../../components/PageLoader';
+import {useNavigation} from '@react-navigation/native';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
-const ProductHistory = () => {
+const ProductHistory = props => {
   const navigation = useNavigation();
   const {getToken, getUser} = useContext(UserContext);
   const activeColor = [
@@ -99,13 +99,22 @@ const ProductHistory = () => {
     }
   };
 
+  const goBack = () => {
+    console.log(props.route?.params?.back,'back')
+    if (props.route?.params?.back) {
+      navigation.navigate('products');
+    } else {
+      navigation.goBack();
+    }
+  };
+
   return (
     <>
       <PageLoader loading={loading} />
       <View style={styles.container}>
         <LinearGradient colors={activeColor} style={styles.card1}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => goBack()}
             style={{
               marginLeft: 15,
               marginTop: 60,
@@ -337,55 +346,51 @@ const ProductHistory = () => {
                 Payment Status - {selectedItem.payment_status}
               </Text>
 
-
-              {selectedItem.status === 'Pending' ?
-              <>
-              {textBox === true ? (
+              {selectedItem.status === 'Pending' ? (
                 <>
-                  <View style={styles.inputBox}>
-                    <TextInput
-                      value={note}
-                      label={'Enter note'}
-                      onChangeText={setNote}
-                      placeholder="Enter note"
-                      style={styles.input}
-                      multiline={true}
-                    />
-                  </View>
-                  <TouchableOpacity
-                    style={styles.cancelBtn}
-                    onPress={() => cancel()}>
-                    <Text style={styles.cancelText}>Cancel</Text>
-                  </TouchableOpacity>
+                  {textBox === true ? (
+                    <>
+                      <View style={styles.inputBox}>
+                        <TextInput
+                          value={note}
+                          label={'Enter note'}
+                          onChangeText={setNote}
+                          placeholder="Enter note"
+                          style={styles.input}
+                          multiline={true}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        style={styles.cancelBtn}
+                        onPress={() => cancel()}>
+                        <Text style={styles.cancelText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.cancelBtn}
+                      onPress={() => setTextBox(true)}>
+                      <Text style={styles.cancelText}>Cancel Order</Text>
+                    </TouchableOpacity>
+                  )}
                 </>
               ) : (
-                <TouchableOpacity
-                  style={styles.cancelBtn}
-                  onPress={() => setTextBox(true)}>
-                  <Text style={styles.cancelText}>Cancel Order</Text>
-                </TouchableOpacity>
+                <>
+                  {selectedItem.notes && selectedItem.status === 'Cancelled' ? (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        lineHeight: 20,
+                        marginTop: 10,
+                        fontFamily: 'Gotham-Book',
+                      }}>
+                      Cancellation Note - {selectedItem.notes}
+                    </Text>
+                  ) : (
+                    <></>
+                  )}
+                </>
               )}
-              </>
-              :
-              <>
-              {(selectedItem.notes && selectedItem.status === 'Cancelled') ?
-              <Text
-                style={{
-                  fontSize: 14,
-                  lineHeight: 20,
-                  marginTop: 10,
-                  fontFamily: 'Gotham-Book',
-                }}>
-                Cancellation Note - {selectedItem.notes}
-              </Text>
-              :
-              <></>
-                }
-              </>
-              }
-
-
-
             </>
           ) : (
             <></>

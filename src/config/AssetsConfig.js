@@ -9,6 +9,10 @@ export const assets = {
   qbg: require('../../assets/images/qbg.png'),
 
   image1: require('../../assets/images/image1.jpeg'),
+  banner: require('../../assets/images/bg1.jpeg'),
+  banner2: require('../../assets/images/banner2.jpeg'),
+  banner3: require('../../assets/images/banner3.jpeg'),
+
 
   chevron: require('../../assets/icons/chevron.png'),
   medal: require('../../assets/icons/medal.png'),

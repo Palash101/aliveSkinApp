@@ -33,11 +33,10 @@ const Package = () => {
 
   const getPackages = async () => {
     const token = await getToken();
-    if (token) {
       const instance = new PackageController();
-      const result = await instance.AllPackages(token);
+      const result = await instance.AllPackages();
       setPackages(result.packages);
-    }
+    
   };
 
   return (

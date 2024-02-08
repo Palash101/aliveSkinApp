@@ -70,6 +70,29 @@ export class ScheduleController {
       });
   }
 
+  async cancelOrder(item, token) {
+    const newdata = new FormData();
+    newdata.append('slot_id', item.slot_id);
+    newdata.append('package_id', item.user_package_id);
+
+    return fetch(API_BASE + `/booking/${item.id}/cancelled`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      method: 'POST',
+      body: newdata,
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
 
 
 }

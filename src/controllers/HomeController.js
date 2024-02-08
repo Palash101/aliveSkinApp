@@ -21,4 +21,23 @@ export class HomeController {
       });
   }
 
+  async AllPdfs() {
+    
+    return fetch(API_BASE + '/pdf', {
+      headers: {
+        Accept: 'application/json',
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
 }

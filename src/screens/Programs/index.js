@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   more:{
-    color:'#6A6C61',
+    color:'#5b6952',
     fontWeight:'600',
     fontSize:14,
     position:'absolute',

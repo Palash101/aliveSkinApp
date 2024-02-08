@@ -85,7 +85,7 @@ export default class Date extends PureComponent {
           <View
             style={{
               height: 3,
-              backgroundColor: '#6A6C61',
+              backgroundColor: '#5b6952',
               marginTop: 4,
               width: 30,
               alignSelf: 'center',
@@ -115,7 +115,7 @@ const styles = {
     marginTop: 5,
   },
   containerActive: {
-    backgroundColor: '#6A6C61',
+    backgroundColor: '#5b6952',
     borderRadius:60
   },
   day: {

@@ -36,6 +36,11 @@ const ProductCard2 = props => {
             </Text>
           </View>
         </View>
+        {item.current_stock > 0 ? <></>:
+          <View style={styles.stockBox}>
+            <Text style={styles.stockText}>OUT OF STOCK</Text>
+          </View>
+        } 
       </TouchableOpacity>
       {item?.auth === 'true' ? (
         <View style={styles.lockIconBox}>
@@ -55,6 +60,21 @@ const styles = StyleSheet.create({
     width: width / 2 - 20,
     marginBottom: 15,
     overflow: 'hidden',
+  },
+  stockBox:{
+    position:'absolute',
+    backgroundColor:'rgba(255,255,255,0.6)',
+    left:0,
+    right:0,
+    top:0,
+    height:135,
+    justifyContent:'center',
+    display:'flex',
+  },
+  stockText:{
+    textAlign:'center',
+    color:'red',
+    fontFamily:'Gotham-Book'
   },
   videoCardbg: {
     height: width / 2 - 60,

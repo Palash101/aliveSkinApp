@@ -23,7 +23,7 @@ export const ThemeButton2 = props => {
   return (
     <Button
       mode="elevated"
-      contentStyle={[styles.buttonText, {backgroundColor: '#6A6C61'}]}
+      contentStyle={[styles.buttonText, {backgroundColor: '#5b6952'}]}
       onPress={() => props.onPress()}
       {...props}>
       <Text style={styles.themeBtnText}>{props.label}</Text>
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   videoButton:{
     fontFamily: 'Gotham-Black',
     fontWeight: '800',
-    backgroundColor: '#6A6C61',
+    backgroundColor: '#5b6952',
     display:'flex',
     flexDirection:'row',
     alignItems: 'center',

@@ -1,13 +1,21 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import ScreenNavigationStack from './src/navigation/ScreenNavigation';
 import {ToastProvider} from 'react-native-toast-notifications';
-import {Dimensions, PermissionsAndroid, StatusBar, StyleSheet, Text, View} from 'react-native';
+import {
+  Dimensions,
+  PermissionsAndroid,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import AuthNavigationStack from './src/navigation/AuthNavigation';
 import UserProvider, {UserConsumer} from './context/UserContext';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import {StripeProvider} from '@stripe/stripe-react-native';
 import messaging from '@react-native-firebase/messaging';
-import { notificationListener, requestUserPermission } from './src/utils/fcm';
+import {notificationListener, requestUserPermission} from './src/utils/fcm';
+// import DetectScreenshot from 'react-native-detect-screenshot';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -36,14 +44,9 @@ const App = () => {
     await messaging().registerDeviceForRemoteMessages();
   };
 
-
   return (
     <>
-      <StripeProvider
-        publishableKey="pk_test_51JazH4SFwd8aLJMUiNmiaM2EPvvAvGeI82PBujQfck2kh3Dq7mCozuFKfm6Gpk1Q0xMiI6WpJcXz8Mc1oYsxZRUV00RleLRpSc"
-        urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
-        merchantIdentifier="merchant.com.aliveskin" // required for Apple Pay
-      >
+      
         <ToastProvider
           offset={50}
           animationType="zoom-in"
@@ -71,9 +74,8 @@ const App = () => {
             )}
           </UserProvider>
         </ToastProvider>
-      </StripeProvider>
+      
     </>
-
   );
 };
 

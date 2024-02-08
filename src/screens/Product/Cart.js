@@ -24,7 +24,7 @@ import {useToast} from 'react-native-toast-notifications';
 import {ModalView} from '../../components/ModalView';
 import WebView from 'react-native-webview';
 
-import useKeyboardHeight from 'react-native-use-keyboard-height';
+import GetKeyboardHeight from '../../utils/GetKeyboardHeight';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -36,7 +36,7 @@ const Cart = props => {
   const [total, setTotal] = useState(0);
   const {getToken, getUser} = useContext(UserContext);
   const toast = useToast();
-  const keyboardHeight = useKeyboardHeight();
+  const keyboardHeight = GetKeyboardHeight();
 
   const [name, setName] = useState();
   const [address, setAddress] = useState();
@@ -177,7 +177,12 @@ const Cart = props => {
       ) {
         const formdata = new FormData();
         formdata.append('name', name);
-        formdata.append('phone', code + phone);
+        if (editId) {
+          formdata.append('phone', phone);
+        }
+        else{
+          formdata.append('phone', code + phone);
+        }
         formdata.append('pincode', pincode);
         formdata.append('city', city);
         formdata.append('state', state);
@@ -263,6 +268,7 @@ const Cart = props => {
 
   const back = () => {
     setAddNew(false);
+    clearForm();
     setEditId();
   };
 
@@ -272,25 +278,13 @@ const Cart = props => {
 
   const checkResponse = data => {
     console.log(data.url);
-    if (data.url.includes('success')) {
-      // const url1 = data.url.split('?')[1];
-      // const url2 = url1.split('&')[0];
-      // const status = url2.split('=')[1];
-      // console.log(status, 'status');
-      //  if (status === 'Paid') {
+    if (data.url.includes('payment/app/success')) {
       setLoading(true);
       AsyncStorage.removeItem('CartData');
       setPayModal(false);
-      //setTimeout(() => {
       toast.show('Order placed successfully.');
-      navigation.navigate('ProductHistory');
+      navigation.navigate('ProductHistory', {back: true});
       setLoading(false);
-      //     }, 2000);
-      //   } else {
-      //     setPayModal(false);
-      //     navigation.navigate('Product');
-      //     toast.show('Payment has been ' + status);
-      //   }
     } else if (data.url.includes('failed')) {
       toast.show('Order has been failed.');
       setLoading(false);
@@ -383,7 +377,7 @@ const Cart = props => {
                   </View>
                   <View style={styles.itemPriceBox}>
                     <Text style={styles.itemqty}>{item.price} KD</Text>
-                    {item.actualPrice ? (
+                    {(item.actualPrice !== item?.price) ? (
                       <Text style={styles.footerPrice2}>
                         {item.actualPrice} KD
                       </Text>
@@ -511,6 +505,7 @@ const Cart = props => {
                       </View>
 
                       <View style={styles.inputBox}>
+                        {editId ? <></>:
                         <TouchableOpacity
                           style={styles.codeInput}
                           onPress={() => setCountryPicker(true)}>
@@ -522,6 +517,7 @@ const Cart = props => {
                             style={{width: 14, height: 14, marginTop: 5}}
                           />
                         </TouchableOpacity>
+                        }
                         <TextInput
                           value={phone}
                           label={'PHONE NUMBER'}
@@ -740,7 +736,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 12,
     textDecorationLine: 'line-through',
-    paddingLeft: 10,
+    paddingLeft: 6,
   },
   modalBox: {
     paddingTop: Platform.OS === 'ios' ? 30 : 30,
@@ -868,6 +864,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontSize: 12,
     fontFamily: 'Gotham-Book',
+    height:26,
   },
   codeInput: {
     display: 'flex',

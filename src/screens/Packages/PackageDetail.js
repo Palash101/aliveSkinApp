@@ -82,11 +82,11 @@ const PackageDetail = props => {
 
   const checkResponse = data => {
     console.log(data.url);
-    if (data.url.includes('success')) {
+    if (data.url.includes('payment/app/success')) {
       setLoading(true);
       setPayModal(false);
       toast.show('Package purchased successfully.');
-      navigation.navigate('Profile');
+      navigation.navigate('Profile',{back: true});
       setLoading(false);
     } else if (data.url.includes('failed')) {
       toast.show('Order has been failed.');

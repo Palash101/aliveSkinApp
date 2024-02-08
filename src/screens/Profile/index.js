@@ -13,7 +13,6 @@ import {
 import {assets} from '../../config/AssetsConfig';
 import {IMAGE_BASE} from '../../config/ApiConfig';
 import {UserContext} from '../../../context/UserContext';
-import {NotificationIcon} from '../../components/NotificationIcon';
 import LinearGradient from 'react-native-linear-gradient';
 import moment from 'moment';
 import {PackageController} from '../../controllers/PackageController';
@@ -22,17 +21,20 @@ import {RoundedDarkButton, RoundedDarkButton2} from '../../components/Buttons';
 import {AuthContoller} from '../../controllers/AuthController';
 import PageLoader from '../../components/PageLoader';
 import RecommandedProductCard from '../../components/Card/RecommandedProductCard';
-import { ProductContoller } from '../../controllers/ProductController';
+import {ProductContoller} from '../../controllers/ProductController';
+import {HomeController} from '../../controllers/HomeController';
+import PackageCard from '../../components/Card/PackageCard';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
-const Profile = () => {
+const Profile = props => {
   const navigation = useNavigation();
   const {getToken, getUser, getAuth} = useContext(UserContext);
   const userCtx = useContext(UserContext);
   const [user, setUser] = useState();
   const [loading, setLoading] = useState(true);
+  const [rewards, setRewards] = useState(0);
   const [auth, setAuth] = useState();
   const activeColor = [
     'rgba(225,215,206,0.2)',
@@ -41,7 +43,7 @@ const Profile = () => {
   ];
   const [packageItem, setPackageItem] = useState([]);
   const [recommandProducts, setRecommandProducts] = useState([]);
-
+  const [packages, setPackages] = useState([]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -54,7 +56,6 @@ const Profile = () => {
   }, []);
 
   const getRecommand = async () => {
-
     const token = await getToken();
     if (token) {
       setLoading(true);
@@ -62,8 +63,7 @@ const Profile = () => {
       const recommandData = await instance2.recommandProducts(token);
       setRecommandProducts(recommandData?.recomendation);
       setLoading(false);
-    } 
-   
+    }
   };
 
   const getPackage = async () => {
@@ -74,24 +74,41 @@ const Profile = () => {
       setPackageItem(result.packages);
     }
   };
-
+  const goToProduct = item => {
+    navigation.navigate('ProductDetails', {item: item});
+  };
   const getUserDetail = async () => {
     const token = await getToken();
+
     if (token) {
+      setAuth(true);
+      const instance1 = new PackageController();
+      const result2 = await instance1.AllPackages(token);
+      setPackages(result2.packages);
+
       const instance = new AuthContoller();
       const result = await instance.profileDetails(token);
       setUser(result.user);
-      console.log(result, 'resss');
+      const result1 = await instance.allRewards(token);
+      console.log(result1, 'ressst');
+      setRewards(parseFloat(result1.points).toFixed(0));
     }
 
-    const authentication = await getAuth();
-    setAuth(authentication);
     setLoading(false);
   };
 
   const logout = () => {
     userCtx.signOut();
     navigation.navigate('Login');
+  };
+
+  const goBack = () => {
+    console.log(props.route?.params?.back, 'back');
+    if (props.route?.params?.back) {
+      navigation.navigate('home');
+    } else {
+      navigation.goBack();
+    }
   };
 
   return (
@@ -102,7 +119,7 @@ const Profile = () => {
         <View style={styles.container}>
           <LinearGradient colors={activeColor} style={styles.card1}>
             <TouchableOpacity
-              onPress={() => navigation.goBack()}
+              onPress={() => goBack()}
               style={{
                 marginLeft: 15,
                 marginTop: 60,
@@ -112,9 +129,7 @@ const Profile = () => {
                 style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
               />
             </TouchableOpacity>
-            <NotificationIcon
-              onPress={() => navigation.navigate('notification')}
-            />
+
             <ScrollView
               style={{flex: 1}}
               showsVerticalScrollIndicator={false}
@@ -173,7 +188,7 @@ const Profile = () => {
                           marginLeft: 10,
                           marginTop: 3,
                         }}>
-                        30 Rewards Point
+                        {rewards} Rewards Point
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -182,47 +197,86 @@ const Profile = () => {
                 <></>
               )}
 
-              {packageItem?.length ? (
+              {packageItem?.length && packageItem[0].bookings != 0 ? (
                 <View style={styles.section}>
-                  <FlatList
-                    data={packageItem}
-                    pagingEnabled
-                    contentContainerStyle={{gap: 10}}
+                  <PackageItem item={packageItem[0]} />
+                </View>
+              ) : (
+                <View
+                  style={[styles.section, {marginTop: 10, marginBottom: 0}]}>
+                  <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                    Consulting packages
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Package')}
+                    style={styles.moreBox}>
+                    <Text style={styles.more}>More...</Text>
+                  </TouchableOpacity>
+                  <ScrollView
+                    horizontal={true}
                     showsHorizontalScrollIndicator={false}
-                    decelerationRate={'normal'}
-                    renderItem={({item, index}) => <PackageItem item={item} />}
-                  />
+                    contentContainerStyle={{gap: 0}}>
+                    {packages
+                      ?.sort((a, b) => a.position - b.position)
+                      .map((item, index) => (
+                        <PackageCard
+                          key={index + 'Package'}
+                          onPress={() =>
+                            navigation.navigate('PackageDetail', {item: item})
+                          }
+                          item={item}
+                          index={index}
+                        />
+                      ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {recommandProducts?.length ? (
+                <View style={[styles.section, {marginTop: 20}]}>
+                  <Text style={styles.sectionHeading}>
+                    Recommended Products{' '}
+                  </Text>
+
+                  <ScrollView
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{gap: 10}}>
+                    {recommandProducts.map((item, index) => (
+                      <RecommandedProductCard
+                        onPress={goToProduct}
+                        item={item?.product}
+                        key={index + 'recommend'}
+                        active={index % 2 != 0}
+                      />
+                    ))}
+                  </ScrollView>
                 </View>
               ) : (
                 <></>
               )}
-
-{recommandProducts?.length ? (
-              <View style={[styles.section,{marginTop:20}]}>
-                <Text style={styles.sectionHeading}>Recommended Products </Text>
-                
-                
-                <FlatList
-                  data={recommandProducts}
-                  pagingEnabled
-                  horizontal={true}
-                  contentContainerStyle={{gap: 10}}
-                  showsHorizontalScrollIndicator={false}
-                  decelerationRate={'normal'}
-                  renderItem={({item, index}) => (
-                    <RecommandedProductCard
-                      onPress={goToProduct}
-                      item={item?.product}
-                      key={index + 'recommend'}
-                      active={index % 2 != 0}
-                    />
-                  )}
-                />
-              </View>
-            ) : (
-              <></>
-            )}
-          
+              {auth === true ? (
+                <View style={styles.sectionBox}>
+                  <TouchableOpacity
+                    style={styles.linkBox}
+                    onPress={() => navigation.navigate('Consulation')}>
+                    <View style={{flexDirection: 'row'}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Gill Sans Medium',
+                          fontSize: 16,
+                          lineHeight: 18,
+                          marginLeft: 10,
+                        }}>
+                        Consultations
+                      </Text>
+                    </View>
+                    <Image source={assets.next} style={styles.linkNext} />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <></>
+              )}
 
               <View style={styles.sectionBox}>
                 <TouchableOpacity style={styles.linkBox}>
@@ -355,6 +409,17 @@ const styles = StyleSheet.create({
     width: width / 2 - 10,
     borderRadius: 20,
   },
+  moreBox: {
+    position: 'absolute',
+    right: 0,
+    marginTop: 4,
+  },
+  more: {
+    color: '#5b6952',
+    fontSize: 14,
+    marginTop: 0,
+    fontFamily: 'Gill Sans Medium',
+  },
   ButtonText: {
     textAlign: 'center',
     fontWeight: '600',
@@ -416,7 +481,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 80,
     marginRight: 10,
-    resizeMode:'cover'
+    resizeMode: 'cover',
   },
   name: {
     fontFamily: 'Gill Sans Medium',

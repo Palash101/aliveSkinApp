@@ -16,40 +16,46 @@ const width = Dimensions.get('window').width;
 const ProductCard = props => {
   const {item} = props;
   return (
-    <View style={{paddingTop:0}}>
-    <TouchableOpacity onPress={() => props.onPress(item)} style={styles.card}>
-      {item?.images && (
-        <Image
-          source={{uri: IMAGE_BASE + item?.images[0]?.image}}
-          style={styles.videoCardbg}
-        />
-      )}
-     
-      <View style={styles.content}>
-        <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
-          {item?.name}
-        </Text>
-        <Text style={styles.tag} ellipsizeMode="tail" numberOfLines={1}>
-          {item?.product_categories?.name}
-        </Text>
-        <View style={{flexDirection: 'row', columnGap: 10}}>
-          {item.discount === 'true' && (
-            <Text style={styles.crossPrice}>{item.price} KD</Text>
-          )}
-          <Text style={styles.price}>
-            {item.discount === 'true' ? item.discount_price : item.price} KD
+    <View style={{paddingTop: 0}}>
+      <TouchableOpacity onPress={() => props.onPress(item)} style={styles.card}>
+        {item?.images && (
+          <Image
+            source={{uri: IMAGE_BASE + item?.images[0]?.image}}
+            style={styles.videoCardbg}
+          />
+        )}
+
+        <View style={styles.content}>
+          <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
+            {item?.name}
           </Text>
+          <Text style={styles.tag} ellipsizeMode="tail" numberOfLines={1}>
+            {item?.product_categories?.name}
+          </Text>
+          <View style={{flexDirection: 'row', columnGap: 10}}>
+            {item.discount === 'true' && (
+              <Text style={styles.crossPrice}>{item.price} KD</Text>
+            )}
+            <Text style={styles.price}>
+              {item.discount === 'true' ? item.discount_price : item.price} KD
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-    {item?.auth === 'true' ? (
+        {item.current_stock > 0 ? <></>:
+          <View style={styles.stockBox}>
+            <Text style={styles.stockText}>OUT OF STOCK</Text>
+          </View>
+        } 
+      </TouchableOpacity>
+
+      {item?.auth === 'true' ? (
         <View style={styles.lockIconBox}>
           <Image source={assets.requirements} style={styles.lockIcon} />
         </View>
       ) : (
         <></>
       )}
-  </View>
+    </View>
   );
 };
 
@@ -61,6 +67,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     overflow: 'hidden',
   },
+  stockBox:{
+    position:'absolute',
+    backgroundColor:'rgba(255,255,255,0.6)',
+    left:0,
+    right:0,
+    top:0,
+    height:125,
+    justifyContent:'center',
+    display:'flex',
+  },
+  stockText:{
+    textAlign:'center',
+    color:'red',
+    fontFamily:'Gotham-Book'
+  },
   lockIconBox: {
     position: 'absolute',
     width: 24,
@@ -70,8 +91,7 @@ const styles = StyleSheet.create({
     top: 0,
     backgroundColor: '#563925',
     borderBottomLeftRadius: 20,
-    zIndex: 999
-
+    zIndex: 999,
   },
   lockIcon: {
     tintColor: '#fff',
@@ -85,8 +105,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ddd',
-    resizeMode:'contain',
-    backgroundColor:'#fff',
+    resizeMode: 'contain',
+    backgroundColor: '#fff',
   },
   content: {
     padding: 0,

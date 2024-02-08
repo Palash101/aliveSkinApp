@@ -12,7 +12,7 @@ import {
 import {assets} from '../../config/AssetsConfig';
 import LinearGradient from 'react-native-linear-gradient';
 import {useNavigation} from '@react-navigation/native';
-import Calendar from '../../components/calendar/Calendar';
+// import Calendar from '../../components/calendar/Calendar';
 import {ThemeButton, ThemeButton2} from '../../components/Buttons';
 import moment from 'moment';
 import {UserContext} from '../../../context/UserContext';
@@ -22,6 +22,8 @@ import {PackageController} from '../../controllers/PackageController';
 import PageLoader from '../../components/PageLoader';
 import {useToast} from 'react-native-toast-notifications';
 import WebView from 'react-native-webview';
+import {AuthContoller} from '../../controllers/AuthController';
+import {Calendar, LocaleConfig} from 'react-native-calendars';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -44,12 +46,16 @@ const Slots = () => {
   const [payUrl, setPayUrl] = useState('');
   const [payModal, setPayModal] = useState(false);
 
+  const [selected, setSelected] = useState('');
+
+  // const minDate = moment(new Date()).add(2, 'days');
+
   const toast = useToast();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      onSelectDate(moment(), 0);
-      setGlobalIndex(0);
+      setSlots([]);
+      setSelected('');
       setSelectedSlot();
       setSelectedPackage();
       getSlots();
@@ -61,6 +67,9 @@ const Slots = () => {
   const onSelectSlot = val => {
     if (val.status === 'Open') {
       setSelectedSlot(val);
+      if (packages[0]?.length > 0 && packages[0]?.bookings > 0) {
+        setSelectedPackage(packages[0]);
+      }
     } else {
       setSelectedSlot();
     }
@@ -68,22 +77,16 @@ const Slots = () => {
 
   const getSlots = async () => {
     const token = await getToken();
-    const newuser = await getUser();
-    if (newuser) {
-      setUser(newuser);
-    }
-    console.log(token,newuser, 'tokennewuser');
+
+    console.log(token, 'tokennewuser');
     if (token) {
       const instance = new ScheduleController();
       const result = await instance.AllSchedule(token);
-      setAllSots(result.schedules);
 
-      var dt = moment().format('YYYY-MM-DD');
-      const filterData = result.schedules.filter(item =>
-        moment(item.start_date_time, 'YYYY-MM-DD').isSame(dt),
-      );
-      console.log(filterData, 'filterDatafilterData');
-      setSlots(filterData);
+      const instance1 = new AuthContoller();
+      const result1 = await instance1.profileDetails(token);
+      setUser(result1.user);
+      setAllSots(result.schedules);
     }
   };
 
@@ -97,15 +100,17 @@ const Slots = () => {
     }
   };
 
-  const onSelectDate = (date, i) => {
+  const onSelectDate = date => {
     console.log(date, 'ddd');
     setLoading(true);
+    setSelected(date);
     var dt = moment(date).format('YYYY-MM-DD');
 
     const filterData = allSlots.filter(item =>
       moment(item.start_date_time, 'YYYY-MM-DD').isSame(dt),
     );
-    setGlobalIndex(i);
+    console.log(allSlots, filterData, 'dttt');
+
     setSlots(filterData);
     setLoading(false);
   };
@@ -131,7 +136,7 @@ const Slots = () => {
       console.log(result, 'result');
       if (result.status === 'success') {
         toast.show(result.msg);
-        navigation.navigate('home');
+        navigation.navigate('Chat', {item: result.booking});
         setLoading(false);
       } else {
         toast.show(result.msg);
@@ -153,7 +158,7 @@ const Slots = () => {
         'Payment',
         token,
       );
-      console.log(result,'ressss')
+      console.log(result, 'ressss');
       if (result.status === 'error') {
         toast.show(result.msg);
         setLoading(false);
@@ -171,7 +176,7 @@ const Slots = () => {
 
   const checkResponse = data => {
     console.log(data.url);
-    if (data.url.includes('success')) {
+    if (data.url.includes('payment/app/success')) {
       setLoading(true);
       setPayModal(false);
       toast.show('Appointment booked successfully.');
@@ -181,6 +186,26 @@ const Slots = () => {
       toast.show('Appointment booking has been failed.');
       setLoading(false);
     }
+  };
+
+  const getCurrentDate = () => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // Month is 0-based
+    const currentDay = currentDate.getDate();
+
+    return `${currentYear}-${currentMonth < 10 ? '0' : ''}${currentMonth}-${currentDay < 10 ? '0' : ''}${currentDay}`;
+  }
+
+  const getFutureDate = (month) => {
+    const currentDate = new Date();
+    currentDate.setMonth(currentDate.getMonth() + month);
+
+    const futureYear = currentDate.getFullYear();
+    const futureMonth = currentDate.getMonth() + 1; // Month is 0-based
+    const futureDay = currentDate.getDate();
+
+    return `${futureYear}-${futureMonth < 10 ? '0' : ''}${futureMonth}-${futureDay < 10 ? '0' : ''}${futureDay}`;
   };
 
   return (
@@ -218,15 +243,37 @@ const Slots = () => {
           </View>
           <ScrollView contentContainerStyle={{flex: 1}}>
             <View style={styles.outerBox}>
-              <Calendar
+              {/* <Calendar
                 currentDate={moment(new Date()).add(2, 'days')}
                 onSelectDate={onSelectDate}
                 globalIndex={globalIndex}
+              /> */}
+              <Calendar
+                minDate={getCurrentDate()}
+                maxDate={getFutureDate(3)}
+                onDayPress={day => {
+                  onSelectDate(day.dateString);
+                }}
+                theme={{
+                  selectedDayBackgroundColor: '#5b6952',
+                  selectedDayTextColor: '#ffffff',
+                  todayTextColor: '#5b6952',
+                  arrowColor: '#5b6952',
+                }}
+                markedDates={{
+                  [selected]: {
+                    selected: true,
+                    disableTouchEvent: true,
+                    selectedDotColor: 'orange',
+                  },
+                }}
               />
 
               {slots?.length ? (
                 <>
-                  <Text style={styles.avlHeading}>Available Slots</Text>
+                  <Text style={styles.avlHeading}>
+                    Slots on {moment(selected).format('LL')}
+                  </Text>
                   <View style={styles.slots}>
                     {slots?.map((item, index) => (
                       <TouchableOpacity
@@ -271,36 +318,36 @@ const Slots = () => {
 
               {selectedSlot && packages?.length > 0 ? (
                 <>
-                  <Text style={styles.avlHeading}>Select Package</Text>
+                  <Text style={styles.avlHeading}>Your Package</Text>
                   <View style={styles.packages}>
-                    {packages?.map((item1, index) => (
-                      <TouchableOpacity
-                        onPress={() => selectPackage(item1)}
-                        style={
-                          selectedPackage?.id === item1.id
-                            ? styles.packageItemSelected
-                            : styles.packageItem
-                        }>
-                        <Text
-                          style={[
-                            styles.ptitle,
-                            selectedPackage?.id === item1.id
-                              ? {color: '#fff'}
-                              : {},
-                          ]}>
-                          {item1.name}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.pappoint,
-                            selectedPackage?.id === item1.id
-                              ? {color: '#fff'}
-                              : {},
-                          ]}>
-                          {item1.bookings} bookings left
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                    {/* {packages?.map((item1, index) => ( */}
+                    <TouchableOpacity
+                      onPress={() => selectPackage(packages[0])}
+                      style={
+                        selectedPackage?.id === packages[0].id
+                          ? styles.packageItemSelected
+                          : styles.packageItem
+                      }>
+                      <Text
+                        style={[
+                          styles.ptitle,
+                          selectedPackage?.id === packages[0].id
+                            ? {color: '#fff'}
+                            : {},
+                        ]}>
+                        {packages[0].name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.pappoint,
+                          selectedPackage?.id === packages[0].id
+                            ? {color: '#fff'}
+                            : {},
+                        ]}>
+                        {packages[0].bookings} bookings left
+                      </Text>
+                    </TouchableOpacity>
+                    {/* ))} */}
                   </View>
                 </>
               ) : (
@@ -408,7 +455,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 4,
     justifyContent: 'space-between',
-    backgroundColor: '#6A6C61',
+    backgroundColor: '#5b6952',
   },
   packages: {
     marginTop: 10,
@@ -440,7 +487,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   selectedSlot: {
-    backgroundColor: '#6A6C61',
+    backgroundColor: '#5b6952',
     padding: 8,
     borderWidth: 1,
     borderColor: '#BBBEB3',
@@ -472,7 +519,7 @@ const styles = StyleSheet.create({
   },
 
   activeSot: {
-    backgroundColor: '#6A6C61',
+    backgroundColor: '#5b6952',
     color: '#fff',
   },
   avlHeading: {

@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   ImageBackground,
@@ -16,7 +17,7 @@ import ImageCard from '../../components/Card/ImageCard';
 import {useNavigation} from '@react-navigation/native';
 import ImageCardFull from '../../components/Card/ImageCardFull';
 import {BlogsController} from '../../controllers/BlogController';
-import { NotificationIcon } from '../../components/NotificationIcon';
+import ViewShot from 'react-native-view-shot';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -26,6 +27,7 @@ const Blogs = () => {
   const [user, setUser] = useState();
   const navigation = useNavigation();
   const [blogs, setBlogs] = useState([]);
+  const [capture, setCapture] = useState(false);
 
   useEffect(() => {
     getUserDetail();
@@ -54,50 +56,63 @@ const Blogs = () => {
     navigation.navigate('Programs');
   };
 
-  return (
-<View style={styles.bg}>      
-      <TouchableOpacity
-        style={{
-          marginLeft: 20,
-          marginTop: 50,
-          backgroundColor: '#000',
-          width: 28,
-          height: 28,
-          alignItems: 'center',
-          borderRadius: 5,
-          position: 'absolute',
-          zIndex: 99,
-        }}
-        onPress={() => navigation.goBack()}>
-        <Image
-          source={assets.back}
-          style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
-        />
-      </TouchableOpacity>
-      <Text style={styles.sectionHeading}>BLOGS</Text>
-      <NotificationIcon onPress={() => navigation.navigate('notification')}/>
+  // const onCapture = () => {
+  //   // Handle the screenshot capture event
+  //   setCapture(true)
+  //   Alert.alert('Screenshot captured:');
+  //   // You can perform any action you need when a screenshot is detected
+  // };
 
-      <ScrollView
-        style={{flex: 1, marginTop: 15, padding: 15, paddingBottom: 150}}>
-        <View style={[styles.section, {paddingBottom: 50}]}>
-          <FlatList
-            data={blogs}
-            pagingEnabled
-            contentContainerStyle={{gap: 10}}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate={'normal'}
-            renderItem={({item, index}) => (
-              <ImageCardFull
-                onPress={() => navigation.navigate('BlogDetails', {item: item})}
-                item={item}
-                index={index}
-                key={index + 'blog'}
-              />
-            )}
+  return (
+    // <ViewShot
+    //   style={{display: 'flex', flex: 1}}
+    //   onCapture={() => onCapture()}
+    //   captureMode="mount">
+      <View style={styles.bg}>
+        <TouchableOpacity
+          style={{
+            marginLeft: 20,
+            marginTop: 50,
+            backgroundColor: '#000',
+            width: 28,
+            height: 28,
+            alignItems: 'center',
+            borderRadius: 5,
+            position: 'absolute',
+            zIndex: 99,
+          }}
+          onPress={() => navigation.goBack()}>
+          <Image
+            source={assets.back}
+            style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
           />
-        </View>
-      </ScrollView>
-    </View>
+        </TouchableOpacity>
+        <Text style={styles.sectionHeading}>BLOGS</Text>
+
+        <ScrollView
+          style={{flex: 1, marginTop: 15, padding: 15, paddingBottom: 150}}>
+          <View style={[styles.section, {paddingBottom: 50}]}>
+            <FlatList
+              data={blogs}
+              pagingEnabled
+              contentContainerStyle={{gap: 10}}
+              showsHorizontalScrollIndicator={false}
+              decelerationRate={'normal'}
+              renderItem={({item, index}) => (
+                <ImageCardFull
+                  onPress={() =>
+                    navigation.navigate('BlogDetails', {item: item})
+                  }
+                  item={item}
+                  index={index}
+                  key={index + 'blog'}
+                />
+              )}
+            />
+          </View>
+        </ScrollView>
+      </View>
+    // </ViewShot>
   );
 };
 export default Blogs;
@@ -107,7 +122,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   more: {
-    color: '#6A6C61',
+    color: '#5b6952',
     fontWeight: '600',
     fontSize: 14,
     position: 'absolute',

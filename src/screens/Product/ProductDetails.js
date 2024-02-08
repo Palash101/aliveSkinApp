@@ -31,7 +31,7 @@ import RenderHTML from 'react-native-render-html';
 import {ModalView} from '../../components/ModalView';
 import {Modal} from 'react-native-paper';
 
-import useKeyboardHeight from 'react-native-use-keyboard-height';
+import GetKeyboardHeight from '../../utils/GetKeyboardHeight';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -53,7 +53,7 @@ const ProductDetails = props => {
   const [more, setMore] = useState(false);
   const [authModal, setAuthModal] = useState(false);
   const [checkDisabled, setCheckDisabled] = useState(false);
-  const keyboardHeight = useKeyboardHeight();
+  const keyboardHeight = GetKeyboardHeight();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -102,43 +102,46 @@ const ProductDetails = props => {
   const addToCart = async val => {
     setAuthModal(false);
     let qty = val === 'add' ? quantity + 1 : quantity - 1;
-    let itemData = [
-      {
-        itemName: item.name,
-        itemImage: item.images[0].image,
-        category: item.product_categories.name,
-        productId: item.id,
-        quantity: qty,
-        price: item.discount === 'true' ? item.discount_price : item.price,
-        actualPrice: item.price,
-        total:
-          item.discount === 'true'
-            ? item.discount_price * qty
-            : item.price * qty,
-      },
-    ];
 
-    if (code && code !== '') {
-      itemData[0].code = code;
-    }
+    if (qty <= item.current_stock) {
+      let itemData = [
+        {
+          itemName: item.name,
+          itemImage: item.images[0].image,
+          category: item.product_categories.name,
+          productId: item.id,
+          quantity: qty,
+          price: item.discount === 'true' ? item.discount_price : item.price,
+          actualPrice: item.price,
+          total:
+            item.discount === 'true'
+              ? item.discount_price * qty
+              : item.price * qty,
+        },
+      ];
 
-    setQuantity(qty);
-
-    console.log(itemData);
-
-    AsyncStorage.getItem('CartData', (_err, result) => {
-      let allData = [];
-      if (result) {
-        let prData = JSON.parse(result).filter(i => i.productId !== item.id);
-        allData = [...prData, ...itemData];
-        AsyncStorage.setItem('CartData', JSON.stringify(allData));
-        serCartData(allData);
-      } else {
-        allData = itemData;
-        AsyncStorage.setItem('CartData', JSON.stringify(allData));
-        serCartData(allData);
+      if (code && code !== '') {
+        itemData[0].code = code;
       }
-    });
+
+      setQuantity(qty);
+
+      console.log(itemData);
+
+      AsyncStorage.getItem('CartData', (_err, result) => {
+        let allData = [];
+        if (result) {
+          let prData = JSON.parse(result).filter(i => i.productId !== item.id);
+          allData = [...prData, ...itemData];
+          AsyncStorage.setItem('CartData', JSON.stringify(allData));
+          serCartData(allData);
+        } else {
+          allData = itemData;
+          AsyncStorage.setItem('CartData', JSON.stringify(allData));
+          serCartData(allData);
+        }
+      });
+    }
   };
 
   const showInfo = info => {
@@ -371,12 +374,22 @@ const ProductDetails = props => {
               )}
             </View>
             {quantity <= 0 ? (
-              <TouchableOpacity
-                style={styles.cartButton}
-                onPress={() => add('add')}>
-                <Image source={assets.cart} style={styles.cartImage} />
-                <Text style={styles.cartButtonText}>Add to cart</Text>
-              </TouchableOpacity>
+              <>
+                {item.current_stock > 0 ? (
+                  <TouchableOpacity
+                    style={styles.cartButton}
+                    onPress={() => add('add')}>
+                    <Image source={assets.cart} style={styles.cartImage} />
+                    <Text style={styles.cartButtonText}>Add to cart</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={{}}>
+                    <Text style={{color: 'red', fontFamily: 'Gotham-Medium'}}>
+                      OUT OF STOCK
+                    </Text>
+                  </View>
+                )}
+              </>
             ) : (
               <View style={{display: 'flex', flexDirection: 'row'}}>
                 <View style={[styles.bottomWrap, {paddingTop: 5}]}>

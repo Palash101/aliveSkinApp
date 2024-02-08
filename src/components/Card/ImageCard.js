@@ -24,36 +24,7 @@ const ImageCard = props => {
         source={{uri: IMAGE_BASE + item?.headerImage}}
         resizeMode="cover"
         style={styles.videoCardbg}>
-        <View style={styles.tags}>
-          {item?.tags &&
-            JSON.parse(item?.tags)
-              ?.slice(0, 3)
-              .map((item1, index) => (
-                <Text key={index + item.id + 'tag'} style={styles.tag}>
-                  {item1}
-                </Text>
-              ))}
-        </View>
-        {/* <View style={styles.bottomBox}>
-          <View style={styles.likeBox}>
-            <Image
-              source={assets.like}
-              style={{
-                width: 20,
-                height: 20,
-                tintColor: props.index == 2 ? 'red' : '#888',
-              }}
-            />
-            <Text style={styles.likeText}>120 Likes</Text>
-          </View>
-          <View style={styles.viewBox}>
-            <Image
-              source={assets.view}
-              style={{width: 20, height: 20, tintColor: '#888'}}
-            />
-            <Text style={styles.viewText}>120 Viewer</Text>
-          </View>
-        </View> */}
+     
         <LikeSection
             like={() => console.log()}
             liked={item?.my_like?.like === 'Liked' ? 'Liked' : 'Uniked'}
@@ -62,13 +33,24 @@ const ImageCard = props => {
             commentCount={item?.view_count}
           />
 
-        <View style={styles.content}>
+      
+      </ImageBackground>
+      <View style={styles.tags}>
+          {item?.tags &&
+            JSON.parse(item?.tags)
+              ?.slice(0, 3)
+              .map((item1, index) => (
+                <Text key={index + item.id + 'tag'} style={styles.tag}>
+                  {item1}
+                </Text>
+              ))}
+      </View>
+      <View style={styles.content}>
           <Text style={styles.title}>{item?.title}</Text>
           <Text style={styles.para} ellipsizeMode="tail" numberOfLines={1}>
             Posted on {moment(item?.updated_at).format('LL')}
           </Text>
         </View>
-      </ImageBackground>
     </TouchableOpacity>
   );
 };
@@ -91,10 +73,10 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: '#fff',
     padding: 5,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    // position: 'absolute',
+    // bottom: 0,
+    // left: 0,
+    // right: 0,
   },
   title: {
     color: '#000',
@@ -115,7 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     position: 'absolute',
-    bottom: 60,
+    bottom: 65,
     left: 10,
     right: 10,
   },
@@ -124,8 +106,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     backgroundColor: '#563925',
-    paddingHorizontal: 4,
+    paddingHorizontal: 10,
     paddingVertical: 2,
+    lineHeight:11,
     borderRadius: 8,
     overflow: 'hidden',
     fontFamily:'Gill Sans Medium'

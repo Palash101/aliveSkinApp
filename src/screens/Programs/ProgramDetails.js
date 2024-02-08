@@ -119,6 +119,11 @@ const ProgramDetails = props => {
     }
   };
 
+  const playVideo = (item1, index) => {
+    setShow(true);
+    setActive(index);
+  };
+
   return (
     <View style={styles.container}>
       {/* <ImageBackground
@@ -174,14 +179,51 @@ const ProgramDetails = props => {
             viewCount={item?.view_count}
             commentCount={item?.view_count}
           />
+          <View>
+            <Text style={styles.avlHeading}>{item?.title}</Text>
+          </View>
 
           <View>
-            <Text style={[styles.itemHeading, {marginBottom: 5}]}>About</Text>
             <RenderHTML
               contentWidth={width - 40}
               source={{html: item?.decription}}
             />
           </View>
+
+          <View style={{marginTop: 30, marginBottom: 50}}>
+            <View
+              style={{
+                gap: 10,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                width: width,
+              }}>
+              {item?.files.map((item1, index) => (
+                // <VideoPlayer
+                //   video={{uri: IMAGE_BASE + item1.image}}
+                //   videoWidth={width}
+                //   videoHeight={200}
+                //   fullscreen={false}
+                //   thumbnail={
+                //     IMAGE_BASE + item1.image
+                //   }
+                // />
+                <TouchableOpacity
+                  onPress={() => playVideo(item1, index)}
+                  style={styles.videoBox}>
+                  <Image
+                    source={{uri: IMAGE_BASE + item.bannerImage}}
+                    resizeMode="cover"
+                    style={styles.videoImage}
+                  />
+                  <View style={styles.playIcon}>
+                    <Image source={assets.play} style={styles.playImage} />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
           {/* <View style={{marginTop: 15}}>
             <Text style={styles.itemHeading}>Related</Text>
             <View style={styles.tags}>
@@ -297,7 +339,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
+  videoBox: {
+    height: 80,
+    borderWidth: 1,
+    borderRadius: 4,
+    borderColor: '#ddd',
+    width: width / 3 - 18,
+  },
+  videoImage: {
+    width: '100%',
+    height: 80,
+    resizeMode: 'cover',
+  },
+  playIcon: {
+    borderWidth: 2,
+    position: 'absolute',
+    top: 25,
+    left: width / 6 - 30,
+    height: 24,
+    width: 24,
+    padding: 4,
+    borderColor: '#fff',
+    borderRadius: 44,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  playImage: {
+    width: 12,
+    height: 12,
+    marginLeft: 2,
+    tintColor: '#fff',
+  },
   vid: {
     height: 300,
     width: width - 40,
@@ -371,7 +442,7 @@ const styles = StyleSheet.create({
 
   card1: {
     flex: 1,
-    marginTop: -30,
+    marginTop: -15,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
@@ -392,10 +463,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   avlHeading: {
-    fontSize: 26,
-    marginTop: 80,
+    fontSize: 18,
+    marginBottom: 10,
     fontWeight: '600',
-    paddingLeft: 15,
     color: '#563925',
   },
   avlPara: {

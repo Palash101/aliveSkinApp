@@ -1,10 +1,9 @@
 import {API_BASE} from '../config/ApiConfig';
 
 export class PackageController {
-  async AllPackages(token) {
+  async AllPackages() {
     return fetch(API_BASE + '/package', {
       headers: {
-        Authorization: 'Bearer ' + token,
         Accept: 'application/json',
       },
       method: 'GET',

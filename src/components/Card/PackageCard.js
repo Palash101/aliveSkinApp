@@ -20,7 +20,7 @@ const PackageCard = props => {
   const {item} = props;
 
   const [colors, setColors] = useState([
-    // ['#6A6C61', '#6A6C61', '#6A6C61'],
+    // ['#5b6952', '#5b6952', '#5b6952'],
     // ['#f9a501', '#f66114', '#f54141'],
     // ['#31a7f0', '#238aef', '#1169eb'],
     // ['#8ba7fb', '#a483f9', '#c673ef'],

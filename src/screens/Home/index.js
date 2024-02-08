@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
   Alert,
+  Animated,
   Dimensions,
   Image,
   ImageBackground,
@@ -33,6 +34,8 @@ import {AuthContoller} from '../../controllers/AuthController';
 import {useToast} from 'react-native-toast-notifications';
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {NotificationController} from '../../controllers/NotificationController';
+import {ExpandingDot} from 'react-native-animated-pagination-dots';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -49,7 +52,10 @@ const Home = () => {
   const [recommandProducts, setRecommandProducts] = useState([]);
   const [packageItem, setPackageItem] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
+  const [allPdfs, setAllPdfs] = useState([]);
+
   const [auth, setAuth] = useState(false);
+  const [count, setCount] = useState(0);
   const toast = useToast();
 
   useEffect(() => {
@@ -79,9 +85,17 @@ const Home = () => {
     }
   };
 
+  const getNotifications = async () => {
+    const token = await getToken();
+    const instance = new NotificationController();
+    const result = await instance.getAllNotification(token);
+    setCount(result?.count);
+  };
+
   const getPackage = async () => {
     const token = await getToken();
     if (token) {
+      getNotifications();
       const instance = new PackageController();
       const result = await instance.myPackage(token);
       setPackageItem(result.packages);
@@ -95,8 +109,9 @@ const Home = () => {
       const result = await instance.allBookings(token);
       const filterData = result.bookings.filter(
         item =>
-          moment(item.date).isSame(new Date()) ||
-          moment(item.date).isAfter(new Date()),
+          (moment(item.date).isSame(new Date()) ||
+            moment(item.date).isAfter(new Date())) &&
+          item.status != 'Cancelled',
       );
       console.log(filterData, 'filterData');
       setAllBookings(filterData);
@@ -117,6 +132,9 @@ const Home = () => {
     const instance = new HomeController();
     const result = await instance.HomeData();
     setPackages(result?.packages?.data);
+
+    const allPdfsData = await instance.AllPdfs();
+    setAllPdfs(allPdfsData?.pdf);
 
     const instance1 = new BlogsController();
     const token = await getToken();
@@ -143,7 +161,7 @@ const Home = () => {
   };
 
   const getDataLoad = async () => {
-    setLoading(true);
+    // setLoading(true);
     getData();
   };
 
@@ -151,22 +169,37 @@ const Home = () => {
     navigation.navigate('ProgramDetails', {item: item});
   };
 
+  const goToPdfs = item => {
+    navigation.navigate('PdfDetail', {item: item});
+  };
   const goToProduct = item => {
     navigation.navigate('ProductDetails', {item: item});
   };
-  const goToAppointment = async() => {
+  const goToAppointment = async () => {
     const token = await getToken();
-    if(token){
-      if (packageItem?.length > 0) {
+    if (token) {
+      if (packageItem?.length > 0 || user.type === 'Old') {
         navigation.navigate('Slots');
       } else {
         toast.show('Please purchase package for book appointments.');
       }
-    }
-    else{
+    } else {
       toast.show('Please login for book appointments.');
     }
   };
+
+  const images = [
+    {
+      image: '../../assets/images/bg1.jpeg',
+    },
+    {
+      image: '../../assets/images/banner2.jpeg',
+    },
+    {
+      image: '../../assets/images/banner3.jpeg',
+    },
+  ];
+  const scrollX = React.useRef(new Animated.Value(0)).current;
 
   return (
     <>
@@ -174,6 +207,8 @@ const Home = () => {
         <PageLoader loading={loading} />
       ) : (
         <ImageBackground resizeMode="cover" style={styles.bg}>
+          <View style={styles.bgTop}></View>
+
           <TouchableOpacity
             style={{
               marginLeft: 20,
@@ -191,9 +226,14 @@ const Home = () => {
             />
           </TouchableOpacity>
 
-          <NotificationIcon
-            onPress={() => navigation.navigate('notification')}
-          />
+          {user && user?.name ? (
+            <NotificationIcon
+              count={count}
+              onPress={() => navigation.navigate('Notification')}
+            />
+          ) : (
+            <></>
+          )}
 
           <PageLoader loading={loading} />
 
@@ -207,20 +247,62 @@ const Home = () => {
               <></>
             )}
 
+            <View style={{marginBottom: 30}}>
+              <FlatList
+                horizontal={true}
+                data={images}
+                showsHorizontalScrollIndicator={false}
+                onScroll={Animated.event(
+                  [{nativeEvent: {contentOffset: {x: scrollX}}}],
+                  {
+                    useNativeDriver: false,
+                  },
+                )}
+                pagingEnabled
+                decelerationRate={'normal'}
+                scrollEventThrottle={16}
+                renderItem={(item, key) => (
+                  <View style={styles.slider}>
+                    <Image source={assets.banner} style={styles.sliderImage} />
+                  </View>
+                )}
+              />
+
+              <ExpandingDot
+                data={images}
+                expandingDotWidth={30}
+                scrollX={scrollX}
+                inActiveDotOpacity={0.6}
+                inActiveDotColor="#5b6952"
+                activeDotColor="#5b6952"
+                dotStyle={{
+                  width: 10,
+                  height: 10,
+                  backgroundColor: '#5b6952',
+                  borderRadius: 5,
+                  marginHorizontal: 5,
+                }}
+                containerStyle={{
+                  bottom: -25,
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                }}
+              />
+            </View>
+
             {allBookings?.length > 0 ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>
                   Upcoming Appointments{' '}
                 </Text>
-                <FlatList
-                  data={allBookings}
-                  pagingEnabled
+                <ScrollView
                   horizontal={true}
-                  contentContainerStyle={{gap: 10}}
                   showsHorizontalScrollIndicator={false}
-                  decelerationRate={'normal'}
-                  renderItem={({item, index}) => (
-                    <View style={styles.bookingBox}>
+                  contentContainerStyle={{gap: 10}}>
+                  {allBookings.map((item, index) => (
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Chat', {item: item})}
+                      style={styles.bookingBox}>
                       <Text style={styles.date}>
                         {moment(item.date).format('DD')}
                       </Text>
@@ -234,15 +316,15 @@ const Home = () => {
                       <Text style={styles.time}>
                         {moment(item.date).format('HH:mm A')}
                       </Text>
-                    </View>
-                  )}
-                />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             ) : (
               <></>
             )}
 
-<View style={styles.aboutBox}>
+            <View style={styles.aboutBox}>
               <Image source={assets.image2} style={styles.aboutImage} />
               <View style={{justifyContent: 'center'}}>
                 <Text style={styles.abTitle}>Alive.Skin</Text>
@@ -253,7 +335,7 @@ const Home = () => {
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'center',
-                    backgroundColor: '#6A6C61',
+                    backgroundColor: '#5b6952',
                     padding: 5,
                     borderRadius: 8,
                   }}
@@ -281,32 +363,27 @@ const Home = () => {
             </View>
 
             {recommandProducts?.length ? (
-              <View style={[styles.section,{marginTop:20}]}>
+              <View style={[styles.section, {marginTop: 20}]}>
                 <Text style={styles.sectionHeading}>Recommended Products </Text>
-                <FlatList
-                  data={recommandProducts}
-                  pagingEnabled
+                <ScrollView
                   horizontal={true}
-                  contentContainerStyle={{gap: 10}}
                   showsHorizontalScrollIndicator={false}
-                  decelerationRate={'normal'}
-                  renderItem={({item, index}) => (
+                  contentContainerStyle={{gap: 10}}>
+                  {recommandProducts.map((item, index) => (
                     <RecommandedProductCard
                       onPress={goToProduct}
                       item={item?.product}
                       key={index + 'recommend'}
                       active={index % 2 != 0}
                     />
-                  )}
-                />
+                  ))}
+                </ScrollView>
               </View>
             ) : (
               <></>
             )}
 
-           
-
-            {packageItem?.length ? (
+            {packageItem?.length && packageItem[0].bookings != 0 ? (
               <>
                 {/* <View style={styles.section}>
                   <FlatList
@@ -323,41 +400,9 @@ const Home = () => {
                     )}
                   />
                 </View> */}
-
-                {/* <View style={styles.section}>
-                  <TouchableOpacity
-                    style={{
-                      marginTop: 10,
-                      display: 'flex',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      backgroundColor: '#6A6C61',
-                      padding: 10,
-                      borderRadius: 20,
-                    }}
-                    onPress={() => navigation.navigate('Slots')}>
-                    <Image
-                      source={assets.calendar}
-                      style={{
-                        width: 16,
-                        tintColor: '#fff',
-                        height: 16,
-                        marginRight: 10,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        color: '#fff',
-                        fontFamily: 'Gill Sans Medium',
-                        fontWeight: '600',
-                      }}>
-                      Add New Appointment
-                    </Text>
-                  </TouchableOpacity>
-                </View> */}
               </>
             ) : (
-              <View style={[styles.section,{marginTop:10,marginBottom:0}]}>
+              <View style={[styles.section, {marginTop: 10, marginBottom: 0}]}>
                 <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
                   Consulting packages
                 </Text>
@@ -366,30 +411,29 @@ const Home = () => {
                   style={styles.moreBox}>
                   <Text style={styles.more}>More...</Text>
                 </TouchableOpacity>
-                <FlatList
-                  data={packages.sort((a, b) => a.position - b.position)}
-                  pagingEnabled
+
+                <ScrollView
                   horizontal={true}
-                  // contentContainerStyle={{gap: 10}}
-                  showsHorizontalScrollIndicator={false}
-                  decelerationRate={'normal'}
-                  renderItem={({item, index}) => (
-                    <PackageCard
-                      key={index + 'Package'}
-                      onPress={() =>
-                        navigation.navigate('PackageDetail', {item: item})
-                      }
-                      item={item}
-                      index={index}
-                    />
-                  )}
-                />
+                  showsHorizontalScrollIndicator={false}>
+                  {packages
+                    ?.sort((a, b) => a.position - b.position)
+                    .map((item, index) => (
+                      <PackageCard
+                        key={index + 'Package'}
+                        onPress={() =>
+                          navigation.navigate('PackageDetail', {item: item})
+                        }
+                        item={item}
+                        index={index}
+                      />
+                    ))}
+                </ScrollView>
               </View>
             )}
 
             <View style={[styles.section, {marginTop: 15}]}>
               <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-                Personal Program
+                Personal Program in Videos
               </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Programs')}
@@ -397,34 +441,53 @@ const Home = () => {
                 <Text style={styles.more}>See More</Text>
               </TouchableOpacity>
 
-              <FlatList
-                data={videos}
-                pagingEnabled
+              <ScrollView
                 horizontal={true}
-                // contentContainerStyle={{gap: 10}}
-                showsHorizontalScrollIndicator={false}
-                decelerationRate={'normal'}
-                renderItem={({item, index}) => (
+                showsHorizontalScrollIndicator={false}>
+                {videos.map((item, index) => (
                   <VideoCard
                     item={item}
                     onPress={() => goToProgram(item)}
                     key={index + 'Video'}
                   />
-                )}
-              />
+                ))}
+              </ScrollView>
             </View>
+            {allPdfs ? (
+              <View style={[styles.section, {marginTop: 15}]}>
+                <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                  Personal Program in Documents
+                </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Pdfs')}
+                  style={styles.moreBox}>
+                  <Text style={styles.more}>See More</Text>
+                </TouchableOpacity>
+
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}>
+                  {allPdfs?.map((item, index) => (
+                    <ActivityCard
+                      item={item}
+                      onPress={() => goToPdfs(item)}
+                      key={index + 'pdf'}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : (
+              <></>
+            )}
 
             <View style={[styles.section, {marginTop: 10}]}>
               <Text style={styles.sectionHeading}>Beauty Tips</Text>
 
-              <FlatList
-                data={beautyBlog}
-                pagingEnabled
+              <ScrollView
                 horizontal={true}
-                contentContainerStyle={{gap: 10}}
                 showsHorizontalScrollIndicator={false}
-                decelerationRate={'normal'}
-                renderItem={({item, index}) => (
+                contentContainerStyle={{gap: 10}}>
+                {beautyBlog.map((item, index) => (
                   <ImageCard
                     onPress={() =>
                       navigation.navigate('BlogDetails', {item: item})
@@ -432,25 +495,23 @@ const Home = () => {
                     item={item}
                     key={index + 'beautyVideo'}
                   />
-                )}
-              />
+                ))}
+              </ScrollView>
             </View>
 
-            <View style={[styles.section, {marginBottom: 50,marginTop:20}]}>
+            <View style={[styles.section, {marginBottom: 50, marginTop: 20}]}>
               <Text style={styles.sectionHeading}>Blogs</Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('blogs')}
                 style={styles.moreBox}>
                 <Text style={styles.more}>See More</Text>
               </TouchableOpacity>
-              <FlatList
-                data={blogs}
-                pagingEnabled
+
+              <ScrollView
                 horizontal={true}
-                contentContainerStyle={{gap: 10}}
                 showsHorizontalScrollIndicator={false}
-                decelerationRate={'normal'}
-                renderItem={({item, index}) => (
+                contentContainerStyle={{gap: 10}}>
+                {beautyBlog.map((item, index) => (
                   <ImageCard
                     onPress={() =>
                       navigation.navigate('BlogDetails', {item: item})
@@ -458,8 +519,8 @@ const Home = () => {
                     item={item}
                     key={index + 'Video'}
                   />
-                )}
-              />
+                ))}
+              </ScrollView>
             </View>
           </ScrollView>
         </ImageBackground>
@@ -472,6 +533,22 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  bgTop: {
+    position: 'absolute',
+    height: 300,
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: '#5b6952',
+  },
+  slider: {
+    marginTop: 10,
+  },
+  sliderImage: {
+    height: 300,
+    width: width - 30,
+    borderRadius: 10,
   },
   aboutBox: {
     marginTop: 30,
@@ -498,7 +575,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 20,
     borderRadius: 4,
-    borderColor: '#6A6C61',
+    borderColor: '#5b6952',
     overflow: 'hidden',
   },
   bidBox: {
@@ -557,7 +634,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   more: {
-    color: '#6A6C61',
+    color: '#5b6952',
     fontSize: 14,
     marginTop: 6,
     fontFamily: 'Gill Sans Medium',
@@ -611,10 +688,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingLeft: 5,
     fontFamily: 'Gill Sans Medium',
+    color: '#fff',
   },
   handIcon: {
     width: 24,
     height: 24,
+    tintColor: '#fff',
   },
   logo: {
     position: 'absolute',

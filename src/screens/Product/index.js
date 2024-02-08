@@ -191,7 +191,16 @@ const Product = () => {
           placeholder="Search"
           style={styles.input}
         />
-        <TouchableOpacity onPress={() => goToSearch()}>
+        <TouchableOpacity
+          style={{
+            width: 32,
+            height: 24,
+            marginTop: -7,
+            marginBottom: -7,
+            right: 10,
+            padding: 7,
+          }}
+          onPress={() => goToSearch()}>
           <Image source={assets.search} style={{width: 14, height: 14}} />
         </TouchableOpacity>
       </View>
@@ -214,14 +223,8 @@ const Product = () => {
       </TouchableOpacity>
 
       <View style={styles.categories}>
-        <FlatList
-          data={barCategories}
-          pagingEnabled
-          horizontal={true}
-          contentContainerStyle={{}}
-          showsHorizontalScrollIndicator={false}
-          decelerationRate={'normal'}
-          renderItem={({item, index}) => (
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          {barCategories.map((item, index) => (
             <TouchableOpacity
               key={index + 'cat'}
               style={[
@@ -237,53 +240,52 @@ const Product = () => {
                 {item.name}
               </Text>
             </TouchableOpacity>
-          )}
-        />
+          ))}
+        </ScrollView>
+
+       
       </View>
-      {activeCategory?.name === 'Featured' && (
+      {activeCategory?.name === 'Featured' ? (
         <ScrollView
           contentContainerStyle={{paddingBottom: 20}}
           style={{padding: 15, marginTop: 0}}>
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>New In</Text>
-            <FlatList
-              data={products}
-              pagingEnabled
+            <ScrollView
               horizontal={true}
-              contentContainerStyle={{gap: 10}}
               showsHorizontalScrollIndicator={false}
-              decelerationRate={'normal'}
-              renderItem={({item, index}) => (
+              contentContainerStyle={{gap: 10}}>
+              {products?.map((item, index) => (
                 <ProductCard
                   onPress={goToProgram}
                   item={item}
                   key={index + 'new'}
                   active={index % 2 != 0}
                 />
-              )}
-            />
+              ))}
+            </ScrollView>
+       
             {loadMore && <ActivityIndicator style={{marginVertical: 50}} />}
           </View>
 
           {recommandProducts?.length ? (
             <View style={styles.section}>
               <Text style={styles.sectionHeading}>Recommended Products </Text>
-              <FlatList
-                data={recommandProducts}
-                pagingEnabled
+       
+              <ScrollView
                 horizontal={true}
-                contentContainerStyle={{gap: 10}}
                 showsHorizontalScrollIndicator={false}
-                decelerationRate={'normal'}
-                renderItem={({item, index}) => (
+                contentContainerStyle={{gap: 10}}>
+                {recommandProducts.map((item, index) => (
                   <ProductCard
                     onPress={goToProgram}
                     item={item?.product}
                     key={index + 'recommand'}
                     active={index % 2 != 0}
                   />
-                )}
-              />
+                ))}
+              </ScrollView>
+
               {loadMore && <ActivityIndicator style={{marginVertical: 50}} />}
             </View>
           ) : (
@@ -306,7 +308,7 @@ const Product = () => {
             </View>
           </View>
         </ScrollView>
-      )}
+      ):<></>}
 
       {activeCategory?.name === 'Brands' && (
         <ScrollView
@@ -443,7 +445,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   more: {
-    color: '#6A6C61',
+    color: '#5b6952',
     fontWeight: '600',
     fontSize: 14,
     position: 'absolute',

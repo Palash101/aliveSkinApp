@@ -16,10 +16,12 @@ const width = Dimensions.get('window').width;
 
 const ActivityCard = props => {
   console.log(props.active);
+  const {item} = props;
+
   return (
     <TouchableOpacity
       onPress={() => props.onPress()} 
-      style={[styles.card1, props.active ? {backgroundColor: '#6A6C61'} : '']}>
+      style={[styles.card1, props.active ? {backgroundColor: '#5b6952'} : '']}>
       <View style={styles.card2Top}>
         <View
           style={{
@@ -28,7 +30,7 @@ const ActivityCard = props => {
             borderRadius: 4,
           }}>
           <Image
-            source={props.active? assets.docs : assets.play}
+            source={assets.docs}
             style={{width: 10, height: 10, tintColor: props.active ? '#000' : '#fff'}}
           />
         </View>
@@ -44,17 +46,17 @@ const ActivityCard = props => {
             fontFamily: 'Gill Sans Medium',
             overflow: 'hidden',
           }}>
-          Free
+          {item.type == 'Free' ? 'Free' : item?.amount}
         </Text>
       </View>
       <Text style={[styles.card2Title, props.active ? {color: '#fff'} : '']}>
-        Lip Line Strengthening
+        {item?.title}
       </Text>
       <Text
         style={[styles.card2Para, props.active ? {color: '#f2f2f2'} : '']}
         ellipsizeMode="tail"
-        numberOfLines={1}>
-        Lorem ipsum doller emit is dummy content
+        numberOfLines={4}>
+        {item?.decription}
       </Text>
     </TouchableOpacity>
   );
@@ -63,14 +65,16 @@ const ActivityCard = props => {
 export default ActivityCard;
 const styles = StyleSheet.create({
   card1: {
-    backgroundColor: '#E2D8CF',
+    backgroundColor: '#fff',
     marginRight: 10,
     marginVertical: 10,
     borderRadius: 10,
-    height: 190,
+    height: 150,
     width: width / 2 - 60,
     overflow: 'hidden',
     padding: 10,
+    borderWidth:1,
+    borderColor:'#ddd'
   },
   card2Top: {
     display: 'flex',
@@ -90,6 +94,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
     marginTop: 7,
+    lineHeight:15,
     fontFamily: 'Gotham-Light',
   },
 });

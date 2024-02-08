@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   more: {
-    color: '#6A6C61',
+    color: '#5b6952',
     fontWeight: '600',
     fontSize: 14,
     position: 'absolute',
