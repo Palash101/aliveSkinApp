@@ -20,6 +20,48 @@ export class ProductContoller {
       .then(response => response.json())
       .then(responseJson => {
         console.log(responseJson, 'response');
+
+          
+
+
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+
+  async productByName(name) {
+    return fetch(API_BASE + `/products/${name}/byName`, {
+      headers: {
+        Accept: 'application/json',
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
+  async getRewards(token) {
+
+    return fetch(API_BASE + '/rewards', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/json',
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
         return responseJson;
       })
       .catch(error => {
@@ -149,8 +191,8 @@ export class ProductContoller {
 
   async productsByBrand(brandid) {
     console.log(brandid, 'brandid');
-    let str = 'name=limit=10&orderBy=asc&brand_id=' + brandid;
-
+    let str = 'limit=10&orderBy=asc&brand_id=' + brandid;
+    console.log(API_BASE + `/products?${str}`,'urlll')
     return fetch(API_BASE + `/products?${str}`, {
       headers: {
         Accept: 'application/json',

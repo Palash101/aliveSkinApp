@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -25,6 +26,9 @@ import {ModalView} from '../../components/ModalView';
 import WebView from 'react-native-webview';
 
 import GetKeyboardHeight from '../../utils/GetKeyboardHeight';
+import {AuthContoller} from '../../controllers/AuthController';
+
+import CheckBox from '@react-native-community/checkbox';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -33,10 +37,13 @@ const Cart = props => {
   const [items, setItems] = useState([]);
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
+  const [subTotal, setSubTotal] = useState(0);
   const [total, setTotal] = useState(0);
   const {getToken, getUser} = useContext(UserContext);
+  const [auth, setAuth] = useState(false);
   const toast = useToast();
   const keyboardHeight = GetKeyboardHeight();
+  const [isSelected, setSelection] = useState(false);
 
   const [name, setName] = useState();
   const [address, setAddress] = useState();
@@ -57,20 +64,31 @@ const Cart = props => {
   const [countryPicker, setCountryPicker] = useState(false);
   const [payUrl, setPayUrl] = useState('');
   const [payModal, setPayModal] = useState(false);
+  const [rewards, setRewards] = useState();
+  const [myRewards, setMyRewards] = useState(0);
+  const [applyRewards, setApplyRewards] = useState(0);
+  const [delivery, setDelivery] = useState(0);
+  const [delType, setdelType] = useState('');
+  const [delMinPrice, setdelMinPrice] = useState(0);
+  const [applyDelivery, setapplyDelivery] = useState('')
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      setLoading(true);
       setPayModal(false);
       setAddressModal(false);
       setPayUrl(false);
-      setLoading(true);
       getItems();
+
       getAllAdress();
     });
     return unsubscribe;
   }, []);
 
   const getItems = async () => {
+    const user = await getUser();
+    console.log(user, 'userrr');
+    setAuth(user ? true : false);
     AsyncStorage.getItem('CartData', (err, result) => {
       console.log(result, 'resultresult');
       if (result) {
@@ -80,15 +98,15 @@ const Cart = props => {
           totalPrice = totalPrice + item.total;
         });
         setTotal(totalPrice);
+        setSubTotal(totalPrice);
       }
     });
-
-    setLoading(false);
   };
 
   const fetchPaymentSheetParams = async () => {
     const token = await getToken();
-    const user = await getUser()
+    const user = await getUser();
+
     if (selectedAddress) {
       // if (token) {
       const newdata = new FormData();
@@ -102,8 +120,15 @@ const Cart = props => {
       newdata.append('city', selectedAddress.city);
       newdata.append('house_no', selectedAddress.house_no);
       newdata.append('landmark', selectedAddress.land_mark);
-      if(token){
-        console.log(user,'useruser')
+      if(applyDelivery === true){
+        newdata.append('delivery_charge', delivery)
+      }
+
+      if (isSelected === true) {
+        newdata.append('rewards', 'apply');
+      }
+      if (token) {
+        console.log(user, 'useruser');
         newdata.append('user_id', user.id);
       }
 
@@ -121,7 +146,7 @@ const Cart = props => {
         return result;
       }
       // } else {
-       //  setLoading(false);
+      //  setLoading(false);
       //   toast.show('Please login');
       // }
     } else {
@@ -147,6 +172,7 @@ const Cart = props => {
       totalPrice = totalPrice + item.total;
     });
     setTotal(totalPrice);
+    setSubTotal(totalPrice);
     AsyncStorage.setItem('CartData', JSON.stringify(filterData));
   };
 
@@ -161,10 +187,96 @@ const Cart = props => {
     }
   };
 
+  useEffect(() => {
+    if (subTotal > 0) {
+      getAllRewards();
+    }
+  }, [subTotal]);
+
+  const getAllRewards = async () => {
+    console.log(subTotal, 'subbb');
+    const token = await getToken();
+    const instance = new ProductContoller();
+    const result = await instance.getRewards(token);
+    console.log(result, 'result.address');
+    setRewards(result);
+    const del = result?.setting[1];
+
+    setDelivery(JSON.parse(del?.price));
+    setdelType(del?.type);
+
+    let applyRewards = 0;
+    if (token) {
+      const instance1 = new AuthContoller();
+      const result1 = await instance1.allRewards(token);
+      const points = parseFloat(result1.points).toFixed(0);
+      setMyRewards(points);
+      applyRewards = await calculateReward(result, points, subTotal);
+    }
+    setApplyRewards(applyRewards);
+
+    if (del?.type === 'MinCost') {
+      setdelMinPrice(JSON.parse(del?.min_price));
+      if (subTotal < JSON.parse(del?.min_price)) {
+        setTotal(subTotal + JSON.parse(del?.price));
+        setapplyDelivery(true)
+      } else {
+        setTotal(subTotal);
+        setapplyDelivery(false)
+      }
+    } else if (del?.type === 'Flat') {
+      setTotal(subTotal + JSON.parse(del?.price));
+      setapplyDelivery(true)
+    } else {
+      setTotal(subTotal);
+      setapplyDelivery(false)
+    }
+
+    console.log(applyRewards, 'applyRewards');
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    callIsSelected();
+  }, [isSelected]);
+
+  const callIsSelected = async () => {
+    if (isSelected === true) {
+      setTotal(subTotal - applyRewards + delivery);
+    } else {
+      setTotal(subTotal + delivery);
+    }
+  };
+
+  const calculateReward = async (result, points, totalPrice) => {
+    let applyPoint = 0;
+    let applyPointFinal = 0;
+
+    if (totalPrice >= result?.rewards?.min_price && points > 0) {
+      let applyCount =
+        (totalPrice / JSON.parse(result?.setting[0]?.price)) *
+        result?.setting[0]?.point;
+      console.log(applyCount, 'applyCount');
+      if (applyCount > result?.rewards?.point) {
+        applyPoint = result?.rewards?.point;
+      } else {
+        applyPoint = applyCount;
+      }
+
+      if (applyPoint > points) {
+        applyPointFinal = points;
+      } else {
+        applyPointFinal = applyPoint;
+      }
+    }
+    return parseInt(applyPointFinal);
+  };
+
   const add = async () => {
     const token = await getToken();
     if (token) {
-      setLoading(true);
       if (
         name &&
         phone &&
@@ -175,12 +287,12 @@ const Cart = props => {
         address &&
         landmark
       ) {
+        setLoading(true);
         const formdata = new FormData();
         formdata.append('name', name);
         if (editId) {
           formdata.append('phone', phone);
-        }
-        else{
+        } else {
           formdata.append('phone', code + phone);
         }
         formdata.append('pincode', pincode);
@@ -193,11 +305,22 @@ const Cart = props => {
         const instance = new ProductContoller();
         if (editId) {
           const result = await instance.updateAddress(formdata, editId, token);
+          if (result.status === 'success') {
+            getAllAdress();
+            clearForm();
+          } else {
+            toast.show(result.message);
+          }
         } else {
           const result = await instance.addAddress(formdata, token);
+          if (!result.errors) {
+            getAllAdress();
+            clearForm();
+          } else {
+            toast.show(result.errors);
+          }
         }
-        getAllAdress();
-        clearForm();
+
         setLoading(false);
       } else {
         toast.show('Please fill all details');
@@ -285,7 +408,8 @@ const Cart = props => {
       toast.show('Order placed successfully.');
       navigation.navigate('ProductHistory', {back: true});
       setLoading(false);
-    } else if (data.url.includes('failed')) {
+    } else if (data.url.includes('app/failed?status=Failed')) {
+      setPayModal(false);
       toast.show('Order has been failed.');
       setLoading(false);
     }
@@ -293,7 +417,6 @@ const Cart = props => {
 
   return (
     <View style={styles.bg}>
-      <PageLoader loading={loading} />
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={{
@@ -305,134 +428,235 @@ const Cart = props => {
           style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
         />
       </TouchableOpacity>
-
-      {items?.length ? (
+      {loading === true ? (
+        <PageLoader loading={true} />
+      ) : (
         <>
-          <ScrollView style={{flex: 1, padding: 15, marginTop: 10}}>
-            <View style={styles.cartItem}>
-              <View style={styles.itemTitleBox}>
-                <Text style={[styles.itemTitle, {marginLeft: 22}]}>
-                  Cart Items
-                </Text>
-              </View>
-              <View style={styles.itemQtyBox}>
-                <Text
-                  style={[styles.itemqty, {fontFamily: 'Gill Sans Medium'}]}>
-                  Qty
-                </Text>
-              </View>
-              <View style={styles.itemPriceBox}>
-                <Text
-                  style={[styles.itemqty, {fontFamily: 'Gill Sans Medium'}]}>
-                  Price
-                </Text>
-              </View>
-              <View style={styles.itemTotalBox}>
-                <Text
-                  style={[
-                    styles.itemTotal,
-                    ,
-                    {fontFamily: 'Gill Sans Medium'},
-                  ]}>
-                  Total
-                </Text>
-              </View>
-            </View>
-            <FlatList
-              data={items}
-              pagingEnabled
-              decelerationRate={'normal'}
-              renderItem={({item}, key) => (
+          {items?.length ? (
+            <>
+              <ScrollView style={{flex: 1, padding: 15, marginTop: 10}}>
                 <View style={styles.cartItem}>
                   <View style={styles.itemTitleBox}>
-                    <TouchableOpacity
-                      onPress={() => deleteItem(item)}
-                      style={{marginTop: 10, paddingRight: 10}}>
-                      <Image
-                        source={assets.trash}
-                        style={{width: 14, height: 14, tintColor: '#888'}}
-                      />
-                    </TouchableOpacity>
-                    <Image
-                      source={{uri: IMAGE_BASE + item.itemImage}}
-                      style={styles.itemImage}
-                    />
-                    <TouchableOpacity
-                      TouchableOpacity
-                      onPress={() =>
-                        navigation.navigate('ProductDetails', {
-                          item: {
-                            id: item.productId,
-                            name: item.itemName,
-                            images: [{image: item.itemImage}],
-                          },
-                        })
-                      }>
-                      <Text style={styles.itemTitle}>{item.itemName}</Text>
-                      <Text style={styles.itemCat}>{item.category}</Text>
-                    </TouchableOpacity>
+                    <Text style={[styles.itemTitle, {marginLeft: 22}]}>
+                      Cart Items
+                    </Text>
                   </View>
                   <View style={styles.itemQtyBox}>
-                    <Text style={styles.itemqty}>{item.quantity}</Text>
+                    <Text
+                      style={[
+                        styles.itemqty,
+                        {fontFamily: 'Gill Sans Medium'},
+                      ]}>
+                      Qty
+                    </Text>
                   </View>
                   <View style={styles.itemPriceBox}>
-                    <Text style={styles.itemqty}>{item.price} KD</Text>
-                    {(item.actualPrice !== item?.price) ? (
-                      <Text style={styles.footerPrice2}>
-                        {item.actualPrice} KD
-                      </Text>
-                    ) : (
-                      <></>
-                    )}
+                    <Text
+                      style={[
+                        styles.itemqty,
+                        {fontFamily: 'Gill Sans Medium'},
+                      ]}>
+                      Price
+                    </Text>
                   </View>
                   <View style={styles.itemTotalBox}>
-                    <Text style={styles.itemTotal}>{item.total} KD</Text>
+                    <Text
+                      style={[
+                        styles.itemTotal,
+                        ,
+                        {fontFamily: 'Gill Sans Medium'},
+                      ]}>
+                      Total
+                    </Text>
                   </View>
                 </View>
-              )}
-            />
-            <View style={styles.cartItem}>
-              <View style={styles.itemTitleBox}>
-                <Text style={styles.itemTitle}></Text>
+                <FlatList
+                  data={items}
+                  pagingEnabled
+                  decelerationRate={'normal'}
+                  renderItem={({item}, key) => (
+                    <View style={styles.cartItem}>
+                      <View style={styles.itemTitleBox}>
+                        <TouchableOpacity
+                          onPress={() => deleteItem(item)}
+                          style={{marginTop: 10, paddingRight: 10}}>
+                          <Image
+                            source={assets.trash}
+                            style={{width: 14, height: 14, tintColor: '#888'}}
+                          />
+                        </TouchableOpacity>
+                        <Image
+                          source={{uri: IMAGE_BASE + item.itemImage}}
+                          style={styles.itemImage}
+                        />
+                        <TouchableOpacity
+                          TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate('ProductDetails', {
+                              item: {
+                                id: item.productId,
+                                name: item.itemName,
+                                images: [{image: item.itemImage}],
+                              },
+                            })
+                          }>
+                          <Text style={styles.itemTitle}>{item.itemName}</Text>
+                          <Text style={styles.itemCat}>{item.category}</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.itemQtyBox}>
+                        <Text style={styles.itemqty}>{item.quantity}</Text>
+                      </View>
+                      <View style={styles.itemPriceBox}>
+                        <Text style={styles.itemqty}>{item.price} KD</Text>
+                        {item.actualPrice !== item?.price ? (
+                          <Text style={styles.footerPrice2}>
+                            {item.actualPrice} KD
+                          </Text>
+                        ) : (
+                          <></>
+                        )}
+                      </View>
+                      <View style={styles.itemTotalBox}>
+                        <Text style={styles.itemTotal}>{item.total} KD</Text>
+                      </View>
+                    </View>
+                  )}
+                />
+                <View style={styles.cartItem}>
+                  <View style={styles.itemTitleBox}>
+                    <Text style={styles.itemTitle}></Text>
+                  </View>
+                  <View style={[styles.itemQtyBox, {width: 0}]}>
+                    <Text style={styles.itemqty}></Text>
+                  </View>
+                  <View style={[styles.itemPriceBox, {width: 100}]}>
+                    <Text style={styles.itemqty}>Sub Total</Text>
+                  </View>
+                  <View style={[styles.itemTotalBox, {width: 62}]}>
+                    <Text style={styles.itemTotal}>{subTotal} KD</Text>
+                  </View>
+                </View>
+                <View style={styles.cartItem}>
+                  {/* <View style={styles.itemTitleBox}>
+                    <Text style={styles.itemTitle}></Text>
+                  </View> */}
+                  {/* <View style={[styles.itemQtyBox, {width: 0}]}>
+                    <Text style={styles.itemqty}></Text>
+                  </View> */}
+                  <View
+                    style={[
+                      styles.itemPriceBox,
+                      {width: width - 110, textAlign: 'right'},
+                    ]}>
+                    <Text style={[styles.itemqty, {textAlign: 'right'}]}>
+                      Delivery Charges
+                    </Text>
+                    {delType === 'Flat' ? (
+                      <Text style={{textAlign: 'right', fontSize: 10}}>
+                        (Estimated delivery charges {delivery}KD)
+                      </Text>
+                    ) : (
+                      <>
+                      {delType === 'MinCost' ? (
+                      <Text style={{textAlign: 'right', fontSize: 10}}>
+                        ({delivery}KD delivery charge applies for orders under{' '}
+                        {delMinPrice}KD.)
+                      </Text>
+                      ):(<></>)}
+                      </>
+                    )}
+                  </View>
+                  <View style={[styles.itemTotalBox, {width: 62}]}>
+                    {applyDelivery === true ?
+                    <Text style={styles.itemTotal}>{delivery} KD</Text>
+                    :
+                    <Text style={styles.itemTotal}>{applyDelivery === false ? 'FREE' : ''}</Text>
+                    }
+                  </View>
+                </View>
+
+                {auth === true && applyRewards > 0 ? (
+                  <View style={styles.cartItem}>
+                    <View style={styles.itemTitleBox}>
+                      <TouchableOpacity
+                        style={{marginTop: -5, marginBottom: -5}}
+                        onPress={() => setSelection(!isSelected)}>
+                        <Image
+                          source={
+                            isSelected === true
+                              ? assets.checked
+                              : assets.unchecked
+                          }
+                          style={{width: 24, height: 24}}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <View style={[styles.itemQtyBox, {width: 0}]}>
+                      <Text style={styles.itemqty}></Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.itemPriceBox,
+                        {width: 100, display: 'flex', flexDirection: 'row'},
+                      ]}>
+                      <Image source={assets.medal} style={styles.medal} />
+                      <Text style={styles.itemqty}>Rewards ({myRewards})</Text>
+                    </View>
+                    <View style={[styles.itemTotalBox, {width: 62}]}>
+                      <Text style={styles.itemTotal}>{applyRewards} KD</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <></>
+                )}
+
+                <View style={styles.cartItem}>
+                  <View style={styles.itemTitleBox}>
+                    <Text style={styles.itemTitle}></Text>
+                  </View>
+                  <View style={styles.itemQtyBox}>
+                    <Text style={styles.itemqty}></Text>
+                  </View>
+                  <View style={styles.itemPriceBox}>
+                    <Text style={styles.itemqty}>Total</Text>
+                  </View>
+                  <View style={styles.itemTotalBox}>
+                    <Text style={styles.itemTotal}>{total} KD</Text>
+                  </View>
+                </View>
+              </ScrollView>
+              <View style={styles.footer}>
+                <View>
+                  <Text style={styles.footerPrice}>Total</Text>
+                  <Text style={styles.totalText}>{total} KD</Text>
+                </View>
+                <View>
+                  <TouchableOpacity
+                    style={styles.cartButton}
+                    onPress={() => {
+                      setAddNew(false);
+                      setAddressModal(true);
+                    }}>
+                    <Image source={assets.cart} style={styles.cartImage} />
+                    <Text style={styles.cartButtonText}>
+                      Proceed to Checkout
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.itemQtyBox}>
-                <Text style={styles.itemqty}></Text>
-              </View>
-              <View style={styles.itemPriceBox}>
-                <Text style={styles.itemqty}>Total</Text>
-              </View>
-              <View style={styles.itemTotalBox}>
-                <Text style={styles.itemTotal}>{total} KD</Text>
-              </View>
-            </View>
-          </ScrollView>
-          <View style={styles.footer}>
-            <View>
-              <Text style={styles.footerPrice}>Total</Text>
-              <Text style={styles.totalText}>{total} KD</Text>
-            </View>
-            <View>
-              <TouchableOpacity
-                style={styles.cartButton}
-                onPress={() => {
-                  setAddNew(false);
-                  setAddressModal(true);
-                }}>
-                <Image source={assets.cart} style={styles.cartImage} />
-                <Text style={styles.cartButtonText}>Proceed to Checkout</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.cartButton,
+                {alignSelf: 'center', marginTop: height / 2 - 70},
+              ]}
+              onPress={() => navigation.navigate('Product')}>
+              <Text style={styles.cartButtonText}>Continue Shopping</Text>
+            </TouchableOpacity>
+          )}
         </>
-      ) : (
-        <TouchableOpacity
-          style={[
-            styles.cartButton,
-            {alignSelf: 'center', marginTop: height / 2 - 70},
-          ]}
-          onPress={() => navigation.navigate('Product')}>
-          <Text style={styles.cartButtonText}>Continue Shopping</Text>
-        </TouchableOpacity>
       )}
 
       <Modal
@@ -440,13 +664,34 @@ const Cart = props => {
         onDismiss={() => setAddressModal(false)}
         style={{
           height: 'auto',
-          marginTop: 260,
-          justifyContent: 'flex-end',
-          marginBottom: keyboardHeight,
+          //   marginTop: 260,
+          //   justifyContent: 'flex-end',
+          //   marginBottom: keyboardHeight,
         }}>
         <View style={styles.modalBox}>
-          <View style={styles.titleHeading}>
-            <Text style={styles.titleText}>
+          <View
+            style={{
+              flexDirection: 'row',
+              borderBottomWidth: 1,
+              borderColor: '#161415',
+              marginTop: 30,
+              marginBottom: 30,
+            }}>
+            <TouchableOpacity onPress={() => setAddressModal(false)}>
+              <Image
+                source={assets.back}
+                style={{width: 16, height: 16, marginLeft: 15, marginTop: 15}}
+              />
+            </TouchableOpacity>
+
+            <Text
+              style={{
+                padding: 15,
+                fontSize: 16,
+                color: '#161415',
+                fontFamily: 'Gotham-Medium',
+                textAlign: 'center',
+              }}>
               {selectedAddress ? 'Selected Address' : 'Select Address'}
             </Text>
           </View>
@@ -505,19 +750,21 @@ const Cart = props => {
                       </View>
 
                       <View style={styles.inputBox}>
-                        {editId ? <></>:
-                        <TouchableOpacity
-                          style={styles.codeInput}
-                          onPress={() => setCountryPicker(true)}>
-                          <Text style={styles.codeText}>
-                            {selectedFlag} {code}
-                          </Text>
-                          <Image
-                            source={assets.chevron}
-                            style={{width: 14, height: 14, marginTop: 5}}
-                          />
-                        </TouchableOpacity>
-                        }
+                        {editId ? (
+                          <></>
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.codeInput}
+                            onPress={() => setCountryPicker(true)}>
+                            <Text style={styles.codeText}>
+                              {selectedFlag} {code}
+                            </Text>
+                            <Image
+                              source={assets.chevron}
+                              style={{width: 14, height: 14, marginTop: 5}}
+                            />
+                          </TouchableOpacity>
+                        )}
                         <TextInput
                           value={phone}
                           label={'PHONE NUMBER'}
@@ -624,11 +871,11 @@ const Cart = props => {
                     <View style={{paddingHorizontal: 10, paddingTop: 10}}>
                       {addresses?.map((item, index) => (
                         <View style={styles.addressBox}>
-                          <TouchableOpacity
+                          {/* <TouchableOpacity
                             onPress={() => cancelAddress(item)}
                             style={styles.removeBtn}>
                             <Text style={styles.removeText}>x</Text>
-                          </TouchableOpacity>
+                          </TouchableOpacity> */}
                           <Text style={styles.addHding}>
                             {item.name} , {item.phone}
                           </Text>
@@ -650,8 +897,19 @@ const Cart = props => {
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => callEdit(item)}
-                              style={styles.addressBtn}>
-                              <Text style={styles.addBtnText}>Edit</Text>
+                              style={styles.addressBtn1}>
+                              <Image
+                                source={assets.edit}
+                                style={{width: 20, height: 20}}
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => cancelAddress(item)}
+                              style={styles.addressBtn1}>
+                              <Image
+                                source={assets.trash}
+                                style={{width: 16, height: 16}}
+                              />
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -731,6 +989,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  medal: {
+    width: 14,
+    height: 14,
+    marginRight: 5,
+  },
   footerPrice2: {
     color: '#333',
     fontWeight: '600',
@@ -739,14 +1002,20 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
   modalBox: {
-    paddingTop: Platform.OS === 'ios' ? 30 : 30,
+    // paddingTop: Platform.OS === 'ios' ? 60 : 60,
+    //backgroundColor: '#fff',
+    // borderTopLeftRadius: 36,
+    // borderTopRightRadius: 36,
+    //bottom: -40,
+    // left: 20,
+    // right: 20,
+    //height: height,
+    paddingTop: Platform.OS === 'ios' ? 0 : 0,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    bottom: -40,
-    left: 0,
-    right: 0,
-    height: 500,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    marginTop: 0,
+    height: height,
   },
   titleHeading: {
     flexDirection: 'row',
@@ -780,12 +1049,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   addressBtn: {
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
     paddingHorizontal: 20,
-    width: width / 2 - 40,
+    width: width - 160,
+  },
+  addressBtn1: {
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    width: 30,
   },
   addBtnText: {
     fontSize: 12,
@@ -864,7 +1141,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontSize: 12,
     fontFamily: 'Gotham-Book',
-    height:26,
+    height: 26,
   },
   codeInput: {
     display: 'flex',

@@ -84,7 +84,7 @@ export class VideoController {
   async like(id, like, token) {
     const newdata = new FormData();
     newdata.append('like', like);
-    console.log(newdata,token)
+    console.log(newdata,token,id)
     return fetch(API_BASE + '/videos/' + id + '/viewed', {
       headers: {
         Authorization: 'Bearer ' + token,

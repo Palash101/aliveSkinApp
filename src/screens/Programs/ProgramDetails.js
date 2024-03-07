@@ -45,7 +45,7 @@ const ProgramDetails = props => {
   const [item, setItem] = useState();
   const [data, setData] = useState([]);
   const [url, setUrl] = useState(
-    'https://cdn.coverr.co/videos/coverr-stream-next-to-the-road-4482/1080p.mp4',
+    '',
   );
   const [show, setShow] = useState(false);
   const [active, setActive] = useState(0);
@@ -74,7 +74,7 @@ const ProgramDetails = props => {
       setItem(result1.video);
       setLikeCount(result1.video?.like_count);
       setActive(0);
-      setUrl(IMAGE_BASE + result1.video.files[0].image);
+      setUrl(result1.video.files[0].image);
       if (result1?.video?.my_like.like === 'Liked') {
         setLiked(result1?.video?.my_like?.like);
       } else {
@@ -88,22 +88,21 @@ const ProgramDetails = props => {
       );
       console.log(viewResult, 'viewResult');
     } else {
-      const instance1 = new BlogsController();
-      const result1 = await instance1.authBlogDetail(
-        'Video',
+      const instance1 = new VideoController();
+      const result1 = await instance1.videoDetail(
         props.route.params.item.id,
       );
-      console.log(result1.video, 'result1.video');
+      console.log(result1, 'result1.video');
       setItem(result1.video);
       setLikeCount(result1.video?.like_count);
       setActive(0);
-      setUrl(IMAGE_BASE + result1.video.files[0].image);
+      setUrl(result1.video.files[0].image);
     }
   };
 
   useEffect(() => {
     if (item?.files) {
-      setUrl(IMAGE_BASE + item.files[active].image);
+      setUrl(item.files[active].image);
     }
   }, [active, item]);
 
@@ -123,6 +122,8 @@ const ProgramDetails = props => {
     setShow(true);
     setActive(index);
   };
+
+  
 
   return (
     <View style={styles.container}>
@@ -165,10 +166,10 @@ const ProgramDetails = props => {
       />
       <LinearGradient colors={activeColor} style={styles.card1}>
         <ScrollView
-          onScroll={Animated.event(
-            [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
-            {useNativeDriver: false},
-          )}
+          // onScroll={Animated.event(
+          //   [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
+          //   {useNativeDriver: false},
+          // )}
           style={{flex: 1}}
           contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
           scrollEventThrottle={16}>
@@ -212,7 +213,7 @@ const ProgramDetails = props => {
                   onPress={() => playVideo(item1, index)}
                   style={styles.videoBox}>
                   <Image
-                    source={{uri: IMAGE_BASE + item.bannerImage}}
+                    source={item.bannerImage ? {uri: IMAGE_BASE + item.bannerImage} : assets.videobg}
                     resizeMode="cover"
                     style={styles.videoImage}
                   />
@@ -236,6 +237,24 @@ const ProgramDetails = props => {
             <Text style={styles.para}>Lorem ipsum doller emit is dummy</Text>
           </View> */}
         </ScrollView>
+
+
+        {/* <View style={styles.footer}>
+          <View>
+            <Text style={styles.footerPrice}>{item?.type === 'Paid'? item.discount_price ? item.discount_price+'KD' : item.amount + 'KD' : 'Free'}</Text>
+            {item?.discount_price ?
+            <Text style={styles.footerPrice2}>{item.amount} KD</Text>
+            :<></>}
+          </View>
+          <View>
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={() => setShow(true)}>
+              <Text style={styles.cartButtonText}>{item?.type === 'Paid'? 'PAY NOW' : 'START TRAINING'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View> */}
+
         <TouchableOpacity
           style={[styles.videoButton]}
           onPress={() => setShow(true)}>
@@ -250,12 +269,15 @@ const ProgramDetails = props => {
           />
           <Text style={styles.themeBtnText}>Start Training</Text>
         </TouchableOpacity>
+
+
+
       </LinearGradient>
 
       <Modal
         visible={show}
         onDismiss={() => setShow(false)}
-        style={{height: height, marginTop: 260}}>
+        style={{height: height, marginTop: 260,backgroundColor:'#000'}}>
         <TouchableOpacity
           onPress={() => setShow(false)}
           style={{
@@ -323,7 +345,7 @@ const ProgramDetails = props => {
         <VideoPlayer
           video={{uri: url}}
           videoWidth={width}
-          videoHeight={height}
+          videoHeight={height-30}
           fullscreen={false}
           thumbnail={
             item?.bannerImage ? IMAGE_BASE + item?.bannerImage : assets.videobg
@@ -339,23 +361,62 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
+  footer: {
+    paddingTop: 10,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerPrice: {
+    color: '#563925',
+    fontWeight: '600',
+    marginTop: 5,
+    fontSize: 18,
+    fontFamily: 'Gotham-Medium',
+  },
+  footerPrice2: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 14,
+    textDecorationLine: 'line-through',
+  },
+  cartButton: {
+    padding: 10,
+    backgroundColor: '#563925',
+    flexDirection: 'row',
+    width: width / 2 - 10,
+    justifyContent: 'center',
+    borderRadius: 20,
+  },
+  cartButtonText: {
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#fff',
+    fontFamily: 'Gill Sans Medium',
+  },
   videoBox: {
     height: 80,
     borderWidth: 1,
     borderRadius: 4,
     borderColor: '#ddd',
     width: width / 3 - 18,
+    overflow:'hidden'
   },
   videoImage: {
     width: '100%',
-    height: 80,
+    height: '100%',
     resizeMode: 'cover',
+    borderRadius:4,
   },
   playIcon: {
     borderWidth: 2,
     position: 'absolute',
     top: 25,
-    left: width / 6 - 30,
+    left: width / 6 - 25,
     height: 24,
     width: 24,
     padding: 4,

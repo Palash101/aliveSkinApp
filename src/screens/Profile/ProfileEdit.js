@@ -29,6 +29,8 @@ import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import {ModalView} from '../../components/ModalView';
 import {IMAGE_BASE} from '../../config/ApiConfig';
 import DatePicker from 'react-native-date-picker';
+import {emailValidation} from '../../utils/emailValidation';
+import {useToast} from 'react-native-toast-notifications';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -53,13 +55,19 @@ const ProfileEdit = () => {
   const [open, setOpen] = useState(false);
   const [image, setImage] = useState('');
   const [date, setDate] = useState(new Date());
+  const toast = useToast();
 
   useEffect(() => {
     getUserDetail();
   }, []);
 
   useEffect(() => {
-    if (data.name != '' && data.gender != '' && data.dob != '' && data.email != '') {
+    if (
+      data.name != '' &&
+      data.gender != '' &&
+      data.dob != '' &&
+      data.email != ''
+    ) {
       setDisable(false);
     } else {
       setDisable(true);
@@ -88,25 +96,29 @@ const ProfileEdit = () => {
   };
 
   const saveData = async () => {
-    setLoading(true);
-    const token = await getToken();
-    console.log(token);
+    if (data.email.length && emailValidation(data.email) === false) {
+      toast.show('Ooops! We need a valid email address.');
+    } else {
+      setLoading(true);
+      const token = await getToken();
+      console.log(token);
 
-    let newData = data;
-    if (singleFile?.uri) {
-      newData.image = {
-        uri: singleFile.uri,
-        type: singleFile.type,
-        name: singleFile.fileName,
-      };
+      let newData = data;
+      if (singleFile?.uri) {
+        newData.image = {
+          uri: singleFile.uri,
+          type: singleFile.type,
+          name: singleFile.fileName,
+        };
+      }
+
+      const instance = new AuthContoller();
+      const result = await instance.profileUpdate(newData, token);
+      userCtx.setUser(result.user);
+      console.log(result, 'result');
+      navigation.navigate('Home');
+      setLoading(false);
     }
-
-    const instance = new AuthContoller();
-    const result = await instance.profileUpdate(newData, token);
-    userCtx.setUser(result.user);
-    console.log(result, 'result');
-    navigation.navigate('Home');
-    setLoading(false);
   };
 
   const setName = name => {
@@ -211,7 +223,16 @@ const ProfileEdit = () => {
                 Profile
               </Text>
 
-              <TouchableOpacity onPress={() => selectOneFile()}>
+              <TouchableOpacity
+                style={{
+                  height: 120,
+                  marginTop: 20,
+                  width: 120,
+                  margin: 'auto',
+                  alignSelf: 'center',
+                  position: 'relative',
+                }}
+                onPress={() => selectOneFile()}>
                 {image == '' || image == null ? (
                   <Image
                     source={assets.profile}
@@ -307,7 +328,7 @@ const ProfileEdit = () => {
                 <RoundedDefaultButton
                   style={styles.button}
                   onPress={() => console.log()}
-                  label={'Next'}
+                  label={'Update'}
                 />
               ) : (
                 <ThemeButton
@@ -384,7 +405,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     alignSelf: 'center',
-    marginTop: 20,
+    //marginTop: 20,
     marginBottom: 20,
   },
   editBox: {
@@ -394,8 +415,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 5,
     position: 'absolute',
-    right: width / 2 + 10,
-    marginTop: 100,
+    //right: width / 2 + 10,
+    left: 10,
+    marginTop: 90,
   },
   editIcon: {
     tintColor: '#fff',

@@ -21,6 +21,7 @@ import DynamicHeader from '../../components/DynamicHeader';
 import {CommentsController} from '../../controllers/CommentsController';
 import {useToast} from 'react-native-toast-notifications';
 import GetKeyboardHeight from '../../utils/GetKeyboardHeight';
+import {Modal} from 'react-native-paper';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -45,6 +46,7 @@ const BlogDetails = props => {
   let scrollOffsetY = useRef(new Animated.Value(0)).current;
   const [open, setOpen] = useState(false);
   const keyboardHeight = GetKeyboardHeight();
+  const [auth, setAuth] = useState(false)
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -62,14 +64,22 @@ const BlogDetails = props => {
     const instance = new BlogsController();
     const token = await getToken();
     if (token) {
+      setAuth(true);
+      const viewResult = await instance.view(
+        props.route.params.item.id,
+        1,
+        token,
+      );
+      console.log(viewResult, 'viewResult');
+
+
       const result1 = await instance.authBlogDetail(
         'Blog',
         props.route.params.item.id,
         token,
       );
-      console.log(result1?.blog?.my_like, 'result1');
       setItem(result1.blog);
-      setAllComments(result1.blog.comments);
+      setAllComments(result1.blog?.comments);
       setLikeCount(result1.blog?.like_count);
       setLoading(false);
       if (result1?.blog?.my_like.like === 'Liked') {
@@ -77,14 +87,7 @@ const BlogDetails = props => {
       } else {
         setLiked('Unliked');
       }
-      console.log(result1?.blog?.my_like?.like, 'likeval');
 
-      const viewResult = await instance.view(
-        props.route.params.item.id,
-        1,
-        token,
-      );
-      console.log(viewResult, 'viewResult');
     } else {
       const result1 = await instance.blogDetail(props.route.params.item.id);
       setItem(result1.blog);
@@ -101,10 +104,9 @@ const BlogDetails = props => {
     setLiked(likeVal);
     setLikeCount(count);
     if (token) {
-      console.log(item.id, likeVal, token, 'sss');
       const instance = new BlogsController();
       const result = await instance.like(item.id, likeVal, token);
-      if(result.status === 'success'){
+      if (result.status === 'success') {
       }
     }
   };
@@ -123,7 +125,7 @@ const BlogDetails = props => {
       );
       if (result.status === 'success') {
         toast.show('Comment posted successfully.');
-        setAllComments([...allComments,{comments: comments, user: user}]);
+        setAllComments([...allComments, {comments: comments, user: user}]);
         setOpen(false);
         setComments('');
         setLoading(false);
@@ -132,6 +134,7 @@ const BlogDetails = props => {
       }
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -168,107 +171,108 @@ const BlogDetails = props => {
       />
 
       <LinearGradient colors={activeColor} style={styles.card1}>
-        
-          <ScrollView
-            style={{flex: 1}}
-            contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
-            scrollEventThrottle={16}
-            onScroll={Animated.event(
-              [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
-              {useNativeDriver: false},
-            )}
-            keyboardShouldPersistTaps="handled">
-            <LikeSection
-              like={like}
-              liked={liked === 'Liked' ? 'Liked' : 'Unliked'}
-              likeCount={likeCount}
-              viewCount={item?.view_count}
-              commentCount={item?.view_count}
-            />
-            <View>
-              <Text style={styles.avlHeading}>{item?.title}</Text>
-              {/* <Text style={styles.avlPara}>
+        <ScrollView
+          style={{flex: 1}}
+          contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
+          scrollEventThrottle={16}
+          // onScroll={height > 900 && Animated.event(
+          //   [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
+          //   {useNativeDriver: false},
+          // )}
+          keyboardShouldPersistTaps="handled">
+          <LikeSection
+            like={like}
+            liked={liked === 'Liked' ? 'Liked' : 'Unliked'}
+            likeCount={likeCount}
+            viewCount={item?.view_count}
+            commentCount={item?.view_count}
+          />
+          <View>
+            <Text style={styles.avlHeading}>{item?.title}</Text>
+            {/* <Text style={styles.avlPara}>
                 Posted on {moment(item?.updated_at).format('LL')}
               </Text> */}
+          </View>
+
+          {item?.summary && (
+            <View style={{marginBottom: 15}}>
+              <Text style={styles.itemHeading}>Summary</Text>
+              <Text style={styles.para}>{item?.summary}</Text>
+            </View>
+          )}
+          {item?.tags && (
+            <View style={{marginBottom: 0}}>
+              {/* <Text style={styles.itemHeading}>Related</Text> */}
+              <View style={styles.tags}>
+                {JSON.parse(item?.tags)
+                  ?.slice(0, 3)
+                  .map((item1, index) => (
+                    <Text key={index + item.id + 'tag'} style={styles.tag}>
+                      {item1}
+                    </Text>
+                  ))}
+              </View>
+            </View>
+          )}
+          {item?.body && (
+            <View style={{marginTop: 15}}>
+              <RenderHTML
+                contentWidth={width - 40}
+                source={{html: item?.body}}
+              />
+            </View>
+          )}
+
+          <View style={styles.commentBox}>
+            <View style={styles.hding}>
+              <Text style={styles.hdingText}>
+                Comments({allComments.length})
+              </Text>
+              {auth === true ? 
+              <TouchableOpacity
+                onPress={() => setOpen(true)}
+                style={[styles.sendBtn, {marginTop: -3}]}>
+                <Text style={styles.sendText}>POST YOUR COMMENT</Text>
+              </TouchableOpacity>
+              :
+              <></>}
+
+
             </View>
 
-            {item?.summary && (
-              <View style={{marginBottom: 15}}>
-                <Text style={styles.itemHeading}>Summary</Text>
-                <Text style={styles.para}>{item?.summary}</Text>
+            {allComments.map((i, index) => (
+              <View style={styles.commentBox1}>
+                <Text style={styles.commentText}>{i?.comments}</Text>
+                <Text style={styles.commentUser}>{i?.user?.name}</Text>
               </View>
-            )}
-            {item?.tags && (
-              <View style={{marginBottom: 0}}>
-                {/* <Text style={styles.itemHeading}>Related</Text> */}
-                <View style={styles.tags}>
-                  {JSON.parse(item?.tags)
-                    ?.slice(0, 3)
-                    .map((item1, index) => (
-                      <Text key={index + item.id + 'tag'} style={styles.tag}>
-                        {item1}
-                      </Text>
-                    ))}
-                </View>
-              </View>
-            )}
-            {item?.body && (
-              <View style={{marginTop: 15}}>
-                <RenderHTML
-                  contentWidth={width - 40}
-                  source={{html: item?.body}}
-                />
-              </View>
-            )}
-
-            <View style={styles.commentBox}>
-              <View style={styles.hding}>
-                <Text style={styles.hdingText}>Comments({allComments.length})</Text>
-                <TouchableOpacity onPress={() => setOpen(true)} style={[styles.sendBtn,{marginTop:-3}]}>
-                  <Text style={styles.sendText}>POST YOUR COMMENT</Text>
-                </TouchableOpacity>
-              </View>
-
-              {allComments.map((i, index) => (
-                <View style={styles.commentBox1}>
-                  <Text style={styles.commentText}>{i?.comments}</Text>
-                  <Text style={styles.commentUser}>{i?.user?.name}</Text>
-                </View>
-              ))}
-
-              
-            </View>
-          </ScrollView>
-       
+            ))}
+          </View>
+        </ScrollView>
       </LinearGradient>
 
-
-        <ModalView
-          visible={open}
-          setVisible={() => setOpen(false)}
-          style={{
-            height: 'auto',
-            marginTop: 260,
-            justifyContent: 'flex-end',
-            marginBottom: keyboardHeight - 150,
-          }}
-          heading={'Write your comment'}>
-           
-            <View style={styles.inputBox}>
-                <TextInput
-                  value={comments}
-                  label={'Write your comments here...'}
-                  onChangeText={setComments}
-                  placeholder="Write your comments here..."
-                  style={styles.input}
-                  multiline={true}
-                />
-              </View>
-              <TouchableOpacity style={styles.sendBtn} onPress={() => send()}>
-                <Text style={styles.sendText}>Send</Text>
-              </TouchableOpacity>
-           
-          </ModalView>
+      <Modal
+        visible={open}
+        onDismiss={() => setOpen(false)}
+        style={{height: 'auto'}}>
+        <View style={styles.modalBox1}>
+          <View style={styles.titleHeading}>
+            <Text style={styles.titleText}>Write your comment</Text>
+          </View>
+          <View style={styles.inputBox}>
+            <TextInput
+              value={comments}
+              label={'Write your comments here...'}
+              onChangeText={setComments}
+              placeholder="Write your comments here..."
+              style={styles.input}
+              multiline={true}
+            />
+          </View>
+          <TouchableOpacity style={styles.sendBtn} onPress={() => send()}>
+            <Text style={styles.sendText}>Send</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -277,6 +281,24 @@ export default BlogDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  modalBox1: {
+    backgroundColor: '#fff',
+    padding: 20,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 10,
+  },
+  titleHeading: {
+    flexDirection: 'row',
+  },
+  titleText: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    fontSize: 14,
+    color: '#161415',
+    fontFamily: 'Gill Sans Medium',
+    textTransform: 'uppercase',
   },
   keyBoardContainer: {
     // backgroundColor: '#fff',
@@ -292,13 +314,14 @@ const styles = StyleSheet.create({
   commentBox: {
     marginBottom: 10,
     paddingBottom: 10,
+    marginTop:10
   },
   commentBox1: {
     borderBottomWidth: 1,
     borderColor: '#ddd',
-   marginBottom: 10,
-   paddingBottom: 10,
- },
+    marginBottom: 10,
+    paddingBottom: 10,
+  },
   commentText: {
     fontFamily: 'Gotham-Book',
     fontSize: 14,
@@ -342,11 +365,11 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderTopWidth:1,
-    borderBottomWidth:1,
-    paddingVertical:10,
-    marginBottom:20,
-    borderColor:'#ddd'
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 10,
+    marginBottom: 20,
+    borderColor: '#ddd',
   },
   hdingText: {
     fontFamily: 'Gotham-Medium',

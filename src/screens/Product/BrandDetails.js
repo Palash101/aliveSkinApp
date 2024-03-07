@@ -101,10 +101,11 @@ const BrandDetails = props => {
           style={{flex: 1}}
           contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
           scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
-            {useNativeDriver: false},
-          )}>
+          // onScroll={Animated.event(
+          //   [{nativeEvent: {contentOffset: {y: scrollOffsetY}}}],
+          //   {useNativeDriver: false},
+          // )}
+          >
           <View>
             <Text style={styles.avlHeading}>{item?.name}</Text>
           </View>

@@ -39,6 +39,7 @@ const ProductHistory = props => {
   const [textBox, setTextBox] = useState(false);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState('');
+  const [subTotal, setSubTotal] = useState(0);
   const toast = useToast();
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -60,6 +61,14 @@ const ProductHistory = props => {
   };
 
   const selectItem = item => {
+    console.log(item, 'itemitem');
+
+    let addVel = 0;
+    item.cart.items.forEach(element => {
+      addVel = addVel + JSON.parse(element.total);
+    });
+    setSubTotal(addVel);
+
     setSelectedItem(item);
     setOpen(true);
   };
@@ -100,7 +109,7 @@ const ProductHistory = props => {
   };
 
   const goBack = () => {
-    console.log(props.route?.params?.back,'back')
+    console.log(props.route?.params?.back, 'back');
     if (props.route?.params?.back) {
       navigation.navigate('products');
     } else {
@@ -149,7 +158,7 @@ const ProductHistory = props => {
                         lineHeight: 16,
                         fontFamily: 'Gotham-Medium',
                       }}>
-                      Order Value {item.price}KD
+                      {item.price}KD
                     </Text>
                     <Text
                       style={{
@@ -157,7 +166,7 @@ const ProductHistory = props => {
                         lineHeight: 16,
                         fontFamily: 'Gotham-Medium',
                       }}>
-                      Total Items {item.cart.items.length}
+                      Items {item.cart.items.length}
                     </Text>
                   </View>
                   <View>
@@ -187,11 +196,9 @@ const ProductHistory = props => {
                     paddingTop: 5,
                     justifyContent: 'space-between',
                   }}>
+                  <Text style={{fontSize: 12}}>ID - {item.order_ref}</Text>
                   <Text style={{fontSize: 12}}>
-                    Order Id - {item.order_ref}
-                  </Text>
-                  <Text style={{fontSize: 12}}>
-                    {moment(item.created_at).format('DD MMM @ HH:mm A')}
+                    {moment(item.created_at).format('DD MMM @ hh:mm A')}
                   </Text>
                 </View>
               </View>
@@ -224,7 +231,7 @@ const ProductHistory = props => {
                         fontFamily: 'Gotham-Medium',
                         marginBottom: 5,
                       }}>
-                      Order Id {selectedItem?.order_ref}KD
+                      ID: {selectedItem?.order_ref}KD
                     </Text>
                     <Text
                       style={{
@@ -232,7 +239,7 @@ const ProductHistory = props => {
                         lineHeight: 20,
                         fontFamily: 'Gotham-Medium',
                       }}>
-                      Order Value {selectedItem?.price}KD
+                      {selectedItem?.price}KD
                     </Text>
                   </View>
                   <View>
@@ -286,7 +293,9 @@ const ProductHistory = props => {
                             },
                           })
                         }>
-                        <Text style={styles.itemTitle}>{item?.itemName}</Text>
+                        <Text style={styles.itemTitle}>
+                          {item?.product?.name}
+                        </Text>
                         <Text style={styles.itemCat}>{item.category}</Text>
                       </TouchableOpacity>
                     </View>
@@ -302,15 +311,71 @@ const ProductHistory = props => {
                   </View>
                 )}
               />
+
               <View style={styles.cartItem}>
                 <View style={styles.itemTitleBox}>
                   <Text style={styles.itemTitle}></Text>
                 </View>
-                <View style={styles.itemQtyBox}>
-                  <Text style={styles.itemqty}></Text>
+                {/* <View style={styles.itemQtyBox}>
+                    <Text style={styles.itemqty}></Text>
+                  </View> */}
+                <View style={[styles.itemPriceBox, {width: 120}]}>
+                  <Text style={[styles.itemqty, {textAlign: 'right'}]}>
+                    Subtotal
+                  </Text>
                 </View>
-                <View style={styles.itemPriceBox}>
-                  <Text style={styles.itemqty}>Total</Text>
+                <View style={styles.itemTotalBox}>
+                  <Text style={styles.itemTotal}>{subTotal} KD</Text>
+                </View>
+              </View>
+              <View style={styles.cartItem}>
+                <View style={styles.itemTitleBox}>
+                  <Text style={styles.itemTitle}></Text>
+                </View>
+                {/* <View style={styles.itemQtyBox}>
+                    <Text style={styles.itemqty}></Text>
+                  </View> */}
+                <View style={[styles.itemPriceBox, {width: 120}]}>
+                  <Text style={[styles.itemqty, {textAlign: 'right'}]}>
+                    Delivery Fee
+                  </Text>
+                </View>
+                <View style={styles.itemTotalBox}>
+                  <Text style={styles.itemTotal}>
+                    {selectedItem?.delivery_charge} KD
+                  </Text>
+                </View>
+              </View>
+              {selectedItem?.rewards_use > 0 ? (
+                <View style={styles.cartItem}>
+                  <View style={styles.itemTitleBox}>
+                    <Text style={styles.itemTitle}></Text>
+                  </View>
+                  <View style={[styles.itemPriceBox, {width: 120}]}>
+                    <Text style={[styles.itemqty, {textAlign: 'right'}]}>
+                      Rewards
+                    </Text>
+                  </View>
+                  <View style={styles.itemTotalBox}>
+                    <Text style={styles.itemTotal}>
+                      {selectedItem?.rewards_use} KD
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <></>
+              )}
+              <View style={styles.cartItem}>
+                <View style={styles.itemTitleBox}>
+                  <Text style={styles.itemTitle}></Text>
+                </View>
+                {/* <View style={styles.itemQtyBox}>
+                  <Text style={styles.itemqty}></Text>
+                </View> */}
+                <View style={[styles.itemPriceBox, {width: 120}]}>
+                  <Text style={[styles.itemqty, {textAlign: 'right'}]}>
+                    Total
+                  </Text>
                 </View>
                 <View style={styles.itemTotalBox}>
                   <Text style={styles.itemTotal}>{selectedItem?.price} KD</Text>

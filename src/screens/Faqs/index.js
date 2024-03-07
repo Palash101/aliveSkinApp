@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
+  Dimensions,
   Image,
   ScrollView,
   StyleSheet,
@@ -10,11 +11,14 @@ import {
 import {assets} from '../../config/AssetsConfig';
 import {FaqsController} from '../../controllers/FaqsController';
 import LinearGradient from 'react-native-linear-gradient';
+import {SkeltonBlackCard} from '../../components/Skelton';
+
+const width = Dimensions.get('window').width;
 
 const Faqs = ({navigation}) => {
-
   const [active, setActive] = useState({});
   const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(false);
   const activeColor = ['#fff', '#fff', 'rgba(225,215,206,1)'];
 
   const toggleActive = async item => {
@@ -30,11 +34,13 @@ const Faqs = ({navigation}) => {
   }, []);
 
   const getFaqsData = async () => {
+    setLoading(true);
     const instance = new FaqsController();
     const result = await instance.AllFaqs();
     if (result.status === 'success') {
       setFaqs(result.faqs);
     }
+    setLoading(false);
   };
 
   return (
@@ -61,34 +67,39 @@ const Faqs = ({navigation}) => {
           FAQ's
         </Text>
 
-      <ScrollView contentContainerStyle={{paddingBottom: 50,marginTop:20}}>
-
-        <View style={styles.allFaq}>
-          {faqs.map((item, index) => (
-            <View style={styles.faqItem} key={index + 'faq'}>
-              <TouchableOpacity
-                style={styles.faqTitle}
-                onPress={() => toggleActive(item)}>
-                <Text style={styles.titleText}>{item.questions}</Text>
-                <Image
-                  source={assets.chevron}
-                  style={
-                    active.id !== item.id
-                      ? styles.chevronImage
-                      : styles.chevronImageOpen
-                  }
-                />
-              </TouchableOpacity>
-              {active.id === item.id && (
-                <View style={styles.faqPara}>
-                  <Text style={styles.paraText}>{item.answers}</Text>
-                </View>
-              )}
+        <ScrollView contentContainerStyle={{paddingBottom: 50, marginTop: 20}}>
+          {loading === true ? (
+            <View style={{paddingLeft: 10}}>
+              <SkeltonBlackCard width={width - 20} height={50} />
+              <SkeltonBlackCard width={width - 20} height={50} />
             </View>
-          ))}
-        </View>
-      
-      </ScrollView>
+          ) : (
+            <View style={styles.allFaq}>
+              {faqs.map((item, index) => (
+                <View style={styles.faqItem} key={index + 'faq'}>
+                  <TouchableOpacity
+                    style={styles.faqTitle}
+                    onPress={() => toggleActive(item)}>
+                    <Text style={styles.titleText}>{item.questions}</Text>
+                    <Image
+                      source={assets.chevron}
+                      style={
+                        active.id !== item.id
+                          ? styles.chevronImage
+                          : styles.chevronImageOpen
+                      }
+                    />
+                  </TouchableOpacity>
+                  {active.id === item.id && (
+                    <View style={styles.faqPara}>
+                      <Text style={styles.paraText}>{item.answers}</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
       </LinearGradient>
     </View>
   );
@@ -135,7 +146,7 @@ const styles = StyleSheet.create({
   faqTitle: {
     backgroundColor: '#f2f2f2',
     paddingVertical: 10,
-    paddingHorizontal:20,
+    paddingHorizontal: 20,
     borderRadius: 8,
     fontFamily: 'Gotham-Book',
     borderWidth: 1,

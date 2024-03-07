@@ -11,10 +11,13 @@ import {
 import {IMAGE_BASE} from '../config/ApiConfig';
 import {assets} from '../config/AssetsConfig';
 
-const Header_Max_Height = 300;
+const Header_Max_Height = 310;
 const Header_Min_Height = 130;
 
 export default function DynamicHeader({animHeaderValue, image, goBack}) {
+
+
+  
   const animateHeaderBackgroundColor = animHeaderValue.interpolate({
     inputRange: [0, Header_Max_Height - Header_Min_Height],
     outputRange: ['#dddddd', '#dddddd'],

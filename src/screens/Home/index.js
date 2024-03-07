@@ -36,6 +36,8 @@ import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NotificationController} from '../../controllers/NotificationController';
 import {ExpandingDot} from 'react-native-animated-pagination-dots';
+import {SkeltonBlackCard} from '../../components/Skelton';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -53,6 +55,7 @@ const Home = () => {
   const [packageItem, setPackageItem] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
   const [allPdfs, setAllPdfs] = useState([]);
+  const [images, setImages] = useState([]);
 
   const [auth, setAuth] = useState(false);
   const [count, setCount] = useState(0);
@@ -136,6 +139,9 @@ const Home = () => {
     const allPdfsData = await instance.AllPdfs();
     setAllPdfs(allPdfsData?.pdf);
 
+    const allImages = await instance.AllBanners();
+    setImages(allImages);
+
     const instance1 = new BlogsController();
     const token = await getToken();
     if (token) {
@@ -161,7 +167,7 @@ const Home = () => {
   };
 
   const getDataLoad = async () => {
-    // setLoading(true);
+    setLoading(true);
     getData();
   };
 
@@ -188,7 +194,7 @@ const Home = () => {
     }
   };
 
-  const images = [
+  const images1 = [
     {
       image: '../../assets/images/bg1.jpeg',
     },
@@ -203,50 +209,52 @@ const Home = () => {
 
   return (
     <>
-      {loading === true ? (
+      {/* {loading === true ? (
         <PageLoader loading={loading} />
-      ) : (
-        <ImageBackground resizeMode="cover" style={styles.bg}>
-          <View style={styles.bgTop}></View>
+      ) : ( */}
+      <ImageBackground resizeMode="cover" style={styles.bg}>
+        <TouchableOpacity
+          style={{
+            marginLeft: 20,
+            marginTop: 50,
+            backgroundColor: '#000',
+            width: 28,
+            height: 28,
+            alignItems: 'center',
+            borderRadius: 5,
+            marginBottom:10,
+          }}
+          onPress={() => navigation.openDrawer()}>
+          <Image
+            source={assets.hamburger}
+            style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
+          />
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={{
-              marginLeft: 20,
-              marginTop: 50,
-              backgroundColor: '#000',
-              width: 28,
-              height: 28,
-              alignItems: 'center',
-              borderRadius: 5,
-            }}
-            onPress={() => navigation.openDrawer()}>
-            <Image
-              source={assets.hamburger}
-              style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
-            />
-          </TouchableOpacity>
+        {user && user?.name ? (
+          <NotificationIcon
+            count={count}
+            onPress={() => navigation.navigate('Notification')}
+          />
+        ) : (
+          <></>
+        )}
 
+        {/* <PageLoader loading={loading} /> */}
+
+        <ScrollView contentContainerStyle={{paddingBottom:40}} style={{flex: 1, paddingBottom: 15,paddingHorizontal:15, paddingBottom:50}}>
           {user && user?.name ? (
-            <NotificationIcon
-              count={count}
-              onPress={() => navigation.navigate('Notification')}
-            />
+            <View style={styles.heading}>
+              <Image source={assets.hi} style={styles.handIcon} />
+              <Text style={styles.username}>Hi, {user?.name}</Text>
+            </View>
           ) : (
             <></>
           )}
 
-          <PageLoader loading={loading} />
-
-          <ScrollView style={{flex: 1, padding: 15, paddingBottom: 50}}>
-            {user && user?.name ? (
-              <View style={styles.heading}>
-                <Image source={assets.hi} style={styles.handIcon} />
-                <Text style={styles.username}>Hi, {user?.name}</Text>
-              </View>
-            ) : (
-              <></>
-            )}
-
+          {!images?.length ? (
+            <>{loading === true ? <SkeltonBlackCard height={200} width={width-30} /> : <></>}</>
+          ) : (
             <View style={{marginBottom: 30}}>
               <FlatList
                 horizontal={true}
@@ -261,9 +269,12 @@ const Home = () => {
                 pagingEnabled
                 decelerationRate={'normal'}
                 scrollEventThrottle={16}
-                renderItem={(item, key) => (
+                renderItem={({item}, key) => (
                   <View style={styles.slider}>
-                    <Image source={assets.banner} style={styles.sliderImage} />
+                    <Image
+                      source={{uri: item?.image}}
+                      style={styles.sliderImage}
+                    />
                   </View>
                 )}
               />
@@ -289,103 +300,124 @@ const Home = () => {
                 }}
               />
             </View>
+          )}
 
-            {allBookings?.length > 0 ? (
-              <View style={styles.section}>
-                <Text style={styles.sectionHeading}>
-                  Upcoming Appointments{' '}
-                </Text>
-                <ScrollView
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{gap: 10}}>
-                  {allBookings.map((item, index) => (
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Chat', {item: item})}
-                      style={styles.bookingBox}>
-                      <Text style={styles.date}>
-                        {moment(item.date).format('DD')}
-                      </Text>
-                      <Text style={styles.month}>
-                        {moment(item.date).format('MMM')}
-                      </Text>
-                      <Text style={styles.year}>
-                        {moment(item.date).format('YYYY')}
-                      </Text>
-
-                      <Text style={styles.time}>
-                        {moment(item.date).format('HH:mm A')}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            ) : (
-              <></>
-            )}
-
-            <View style={styles.aboutBox}>
-              <Image source={assets.image2} style={styles.aboutImage} />
-              <View style={{justifyContent: 'center'}}>
-                <Text style={styles.abTitle}>Alive.Skin</Text>
-                <Text style={styles.abPara}>Start your concern with me</Text>
-                <TouchableOpacity
-                  style={{
-                    marginTop: 5,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    backgroundColor: '#5b6952',
-                    padding: 5,
-                    borderRadius: 8,
-                  }}
-                  onPress={() => goToAppointment()}>
-                  <Image
-                    source={assets.calendar}
-                    style={{
-                      width: 12,
-                      tintColor: '#fff',
-                      height: 12,
-                      marginRight: 10,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      color: '#fff',
-                      fontFamily: 'Gill Sans Medium',
-                      fontWeight: '600',
-                      fontSize: 12,
-                    }}>
-                    Add New Appointment
+          {!allBookings?.length ? (
+            <>{loading === true ? <SkeltonBlackCard height={100} width={width-30} /> : <></>}</>
+          ) : (
+            <>
+              {allBookings?.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionHeading}>
+                    Upcoming Appointments{' '}
                   </Text>
-                </TouchableOpacity>
-              </View>
+                  <ScrollView
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{gap: 10}}>
+                    {allBookings.map((item, index) => (
+                      <TouchableOpacity
+                        onPress={() =>
+                          navigation.navigate('Chat', {user_id: item.user_id})
+                        }
+                        style={styles.bookingBox}>
+                        <Text style={styles.date}>
+                          {moment(item.date).format('DD')}
+                        </Text>
+                        <Text style={styles.month}>
+                          {moment(item.date).format('MMM')}
+                        </Text>
+                        <Text style={styles.year}>
+                          {moment(item.date).format('YYYY')}
+                        </Text>
+
+                        <Text style={styles.time}>
+                          {moment(item.date).format('hh:mm A')}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : (
+                <></>
+              )}
+            </>
+          )}
+
+          <View style={styles.aboutBox}>
+            <Image
+              source={{
+                uri: `https://firebasestorage.googleapis.com/v0/b/alive-skin-da29a.appspot.com/o/admin%2Fadmin.jpg?alt=media&token=fbf17d17-4144-41c8-a7b1-2c890d12e9a5`,
+              }}
+              style={styles.aboutImage}
+            />
+            <View style={{justifyContent: 'center'}}>
+              <Text style={styles.abTitle}>Alive.Skin</Text>
+              <Text style={styles.abPara}>start your Journey with me</Text>
+              <TouchableOpacity
+                style={{
+                  marginTop: 5,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  backgroundColor: '#5b6952',
+                  padding: 5,
+                  borderRadius: 8,
+                }}
+                onPress={() => goToAppointment()}>
+                <Image
+                  source={assets.calendar}
+                  style={{
+                    width: 12,
+                    tintColor: '#fff',
+                    height: 12,
+                    marginRight: 10,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontFamily: 'Gill Sans Medium',
+                    fontWeight: '600',
+                    fontSize: 12,
+                  }}>
+                  Add New Appointment
+                </Text>
+              </TouchableOpacity>
             </View>
+          </View>
 
-            {recommandProducts?.length ? (
-              <View style={[styles.section, {marginTop: 20}]}>
-                <Text style={styles.sectionHeading}>Recommended Products </Text>
-                <ScrollView
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{gap: 10}}>
-                  {recommandProducts.map((item, index) => (
-                    <RecommandedProductCard
-                      onPress={goToProduct}
-                      item={item?.product}
-                      key={index + 'recommend'}
-                      active={index % 2 != 0}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            ) : (
-              <></>
-            )}
+          {recommandProducts?.length ? (
+            <View style={[styles.section, {marginTop: 20}]}>
+              <Text style={styles.sectionHeading}>Recommended Products </Text>
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{gap: 10}}>
+                {recommandProducts.map((item, index) => (
+                  <ProductCard
+                    onPress={goToProduct}
+                    item={item?.product}
+                    key={index + 'recommend'}
+                    active={index % 2 != 0}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          ) : (
+            <>
+              {loading === true ? (
+               
+                  <SkeltonBlackCard height={100} width={width-30} />
+              ) : (
+                <></>
+              )}
+            </>
+          )}
 
-            {packageItem?.length && packageItem[0].bookings != 0 ? (
-              <>
-                {/* <View style={styles.section}>
+          {packageItem?.length && packageItem[0].bookings != 0 ? (
+            <>
+              {/* <View style={styles.section}>
                   <FlatList
                     data={packageItem}
                     pagingEnabled
@@ -400,40 +432,41 @@ const Home = () => {
                     )}
                   />
                 </View> */}
-              </>
-            ) : (
-              <View style={[styles.section, {marginTop: 10, marginBottom: 0}]}>
-                <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-                  Consulting packages
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Package')}
-                  style={styles.moreBox}>
-                  <Text style={styles.more}>More...</Text>
-                </TouchableOpacity>
+            </>
+          ) : (
+            <View style={[styles.section, {marginTop: 10, marginBottom: 0}]}>
+              <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                Consulting packages
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Package')}
+                style={styles.moreBox}>
+                <Text style={styles.more}>More...</Text>
+              </TouchableOpacity>
 
-                <ScrollView
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}>
-                  {packages
-                    ?.sort((a, b) => a.position - b.position)
-                    .map((item, index) => (
-                      <PackageCard
-                        key={index + 'Package'}
-                        onPress={() =>
-                          navigation.navigate('PackageDetail', {item: item})
-                        }
-                        item={item}
-                        index={index}
-                      />
-                    ))}
-                </ScrollView>
-              </View>
-            )}
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}>
+                {packages
+                  ?.sort((a, b) => a.position - b.position)
+                  .map((item, index) => (
+                    <PackageCard
+                      key={index + 'Package'}
+                      onPress={() =>
+                        navigation.navigate('PackageDetail', {item: item})
+                      }
+                      item={item}
+                      index={index}
+                    />
+                  ))}
+              </ScrollView>
+            </View>
+          )}
 
+          {videos && videos?.length ? (
             <View style={[styles.section, {marginTop: 15}]}>
               <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-                Personal Program in Videos
+                Personal Programs
               </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Programs')}
@@ -453,78 +486,97 @@ const Home = () => {
                 ))}
               </ScrollView>
             </View>
-            {allPdfs ? (
-              <View style={[styles.section, {marginTop: 15}]}>
-                <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-                  Personal Program in Documents
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Pdfs')}
-                  style={styles.moreBox}>
-                  <Text style={styles.more}>See More</Text>
-                </TouchableOpacity>
+          ) : (
+            <>
+              {loading === true ? (
+               <SkeltonBlackCard height={100} width={width-30} />
+              ) : (
+                <></>
+              )}
+            </>
+          )}
 
-                <ScrollView
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}>
-                  {allPdfs?.map((item, index) => (
-                    <ActivityCard
-                      item={item}
-                      onPress={() => goToPdfs(item)}
-                      key={index + 'pdf'}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            ) : (
-              <></>
-            )}
-
-            <View style={[styles.section, {marginTop: 10}]}>
-              <Text style={styles.sectionHeading}>Beauty Tips</Text>
-
-              <ScrollView
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{gap: 10}}>
-                {beautyBlog.map((item, index) => (
-                  <ImageCard
-                    onPress={() =>
-                      navigation.navigate('BlogDetails', {item: item})
-                    }
-                    item={item}
-                    key={index + 'beautyVideo'}
-                  />
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={[styles.section, {marginBottom: 50, marginTop: 20}]}>
-              <Text style={styles.sectionHeading}>Blogs</Text>
+          {!allPdfs?.length ? (
+            <>
+              {loading === true ? (
+                <SkeltonBlackCard height={100} width={width-30} />
+              ) : (
+                <></>
+              )}
+            </>
+          ) : (
+            <View style={[styles.section, {marginTop: 15}]}>
+              <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                Digital documents
+              </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('blogs')}
+                onPress={() => navigation.navigate('Pdfs')}
                 style={styles.moreBox}>
                 <Text style={styles.more}>See More</Text>
               </TouchableOpacity>
 
               <ScrollView
                 horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{gap: 10}}>
-                {beautyBlog.map((item, index) => (
-                  <ImageCard
-                    onPress={() =>
-                      navigation.navigate('BlogDetails', {item: item})
-                    }
+                showsHorizontalScrollIndicator={false}>
+                {allPdfs?.map((item, index) => (
+                  <ActivityCard
                     item={item}
-                    key={index + 'Video'}
+                    onPress={() => goToPdfs(item)}
+                    key={index + 'pdf'}
                   />
                 ))}
               </ScrollView>
             </View>
-          </ScrollView>
-        </ImageBackground>
-      )}
+          )}
+          {beautyBlog?.length > 0 ?
+          <View style={[styles.section, {marginTop: 10}]}>
+            <Text style={styles.sectionHeading}>Beauty Tips</Text>
+
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{gap: 10}}>
+              {beautyBlog.map((item, index) => (
+                <ImageCard
+                  onPress={() =>
+                    navigation.navigate('BlogDetails', {item: item})
+                  }
+                  item={item}
+                  key={index + 'beautyVideo'}
+                />
+              ))}
+            </ScrollView>
+          </View>
+          :<></>}
+
+          {blogs?.length > 0 ?
+          <View style={[styles.section, {marginBottom: 50, marginTop: 20}]}>
+            <Text style={styles.sectionHeading}>Blogs</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('blogs')}
+              style={styles.moreBox}>
+              <Text style={styles.more}>See More</Text>
+            </TouchableOpacity>
+
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{gap: 10}}>
+              {blogs.map((item, index) => (
+                <ImageCard
+                  onPress={() =>
+                    navigation.navigate('BlogDetails', {item: item})
+                  }
+                  item={item}
+                  key={index + 'Video'}
+                />
+              ))}
+            </ScrollView>
+          </View>
+          :<></>}
+        </ScrollView>
+      </ImageBackground>
+      {/* )} */}
     </>
   );
 };
@@ -688,12 +740,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingLeft: 5,
     fontFamily: 'Gill Sans Medium',
-    color: '#fff',
+    color: '#000',
   },
   handIcon: {
     width: 24,
     height: 24,
-    tintColor: '#fff',
+    tintColor: '#000',
   },
   logo: {
     position: 'absolute',

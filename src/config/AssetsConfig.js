@@ -1,4 +1,6 @@
 export const assets = {
+  logo: require('../../assets/images/logo.png'),
+
   logo_dark: require('../../assets/images/logo_dark.png'),
   logo_light: require('../../assets/images/logo_light.png'),
   logo_trans: require('../../assets/images/logo_trans.png'),
@@ -18,12 +20,19 @@ export const assets = {
   medal: require('../../assets/icons/medal.png'),
   facebook: require('../../assets/icons/facebook.png'),
   instagram: require('../../assets/icons/instagram.png'),
+  tiktok: require('../../assets/icons/tiktok.png'),
+  snapchat: require('../../assets/icons/snapchat.png'),
+  circle: require('../../assets/icons/circle.png'),
+
+
 
   cart: require('../../assets/icons/cart.png'),
   edit: require('../../assets/icons/edit.png'),
 
   comment: require('../../assets/icons/chat.png'),
+  discussion: require('../../assets/icons/discussion.png'),
   trash: require('../../assets/icons/trash.png'),
+  unchecked: require('../../assets/icons/unchecked.png'),
   checked: require('../../assets/icons/checked.png'),
   info: require('../../assets/icons/info.png'),
 
@@ -43,7 +52,11 @@ export const assets = {
   hamburger: require('../../assets/icons/Hamburger_icon.png'),
   calendar: require('../../assets/icons/calendar.png'),
   docs: require('../../assets/icons/docs.png'),
+
+  
   videobg: require('../../assets/images/videobg1.jpeg'),
+
+
   rewardbg: require('../../assets/images/rewardbg.png'),
 
   home: require('../../assets/icons/home.png'),

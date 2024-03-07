@@ -18,6 +18,8 @@ import {useNavigation} from '@react-navigation/native';
 import ImageCardFull from '../../components/Card/ImageCardFull';
 import {BlogsController} from '../../controllers/BlogController';
 import ViewShot from 'react-native-view-shot';
+import PageLoader from '../../components/PageLoader';
+import { SkeltonBlackCard } from '../../components/Skelton';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -28,6 +30,7 @@ const Blogs = () => {
   const navigation = useNavigation();
   const [blogs, setBlogs] = useState([]);
   const [capture, setCapture] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getUserDetail();
@@ -40,15 +43,18 @@ const Blogs = () => {
   };
 
   const getBlogs = async () => {
+    setLoading(true);
     const token = await getToken();
     if (token) {
       const instance = new BlogsController();
       const result = await instance.authAllBlogs('Blog', token);
       setBlogs(result.blogs);
+      setLoading(false);
     } else {
       const instance = new BlogsController();
       const result = await instance.AllBlogs(token);
       setBlogs(result.blogs);
+      setLoading(false);
     }
   };
 
@@ -68,6 +74,8 @@ const Blogs = () => {
     //   style={{display: 'flex', flex: 1}}
     //   onCapture={() => onCapture()}
     //   captureMode="mount">
+    <>
+
       <View style={styles.bg}>
         <TouchableOpacity
           style={{
@@ -91,14 +99,22 @@ const Blogs = () => {
 
         <ScrollView
           style={{flex: 1, marginTop: 15, padding: 15, paddingBottom: 150}}>
-          <View style={[styles.section, {paddingBottom: 50}]}>
-            <FlatList
-              data={blogs}
-              pagingEnabled
-              contentContainerStyle={{gap: 10}}
-              showsHorizontalScrollIndicator={false}
-              decelerationRate={'normal'}
-              renderItem={({item, index}) => (
+          {!blogs.length ? (
+            <>
+            {loading === true ?
+            <>
+              <SkeltonBlackCard height={200} />
+              <SkeltonBlackCard height={200} />
+              </>
+              :<>
+              <View>
+                  <Text style={styles.avlHeading}>No Slots Available</Text>
+                </View>
+              </>}
+            </>
+          ) : (
+            <View style={[styles.section, {paddingBottom: 50, gap: 10}]}>
+              {blogs.map((item, index) => (
                 <ImageCardFull
                   onPress={() =>
                     navigation.navigate('BlogDetails', {item: item})
@@ -107,11 +123,12 @@ const Blogs = () => {
                   index={index}
                   key={index + 'blog'}
                 />
-              )}
-            />
-          </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
       </View>
+    </>
     // </ViewShot>
   );
 };
@@ -120,6 +137,12 @@ export default Blogs;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  avlHeading: {
+    fontSize: 14,
+    marginTop: 30,
+    fontFamily: 'Gill Sans Medium',
+    textAlign: 'center'
   },
   more: {
     color: '#5b6952',

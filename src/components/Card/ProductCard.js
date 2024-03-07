@@ -18,16 +18,23 @@ const ProductCard = props => {
   return (
     <View style={{paddingTop: 0}}>
       <TouchableOpacity onPress={() => props.onPress(item)} style={styles.card}>
-        {item?.images && (
+        {item?.images?.length ? (
           <Image
-            source={{uri: IMAGE_BASE + item?.images[0]?.image}}
+            source={{uri: IMAGE_BASE + item?.images[0].image}}
             style={styles.videoCardbg}
           />
-        )}
+        ):<></>}
 
-        <View style={styles.content}>
+       
+        {item.current_stock > 0 ? <></>:
+          <View style={styles.stockBox}>
+            <Text style={styles.stockText}>OUT OF STOCK</Text>
+          </View>
+        } 
+      </TouchableOpacity>
+      <View style={styles.content}>
           <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
-            {item?.name}
+            {item?.name}{item?.variant_name ? <Text style={{textTransform:'uppercase'}}> - {item?.variant_name}</Text> : ''}
           </Text>
           <Text style={styles.tag} ellipsizeMode="tail" numberOfLines={1}>
             {item?.product_categories?.name}
@@ -41,12 +48,6 @@ const ProductCard = props => {
             </Text>
           </View>
         </View>
-        {item.current_stock > 0 ? <></>:
-          <View style={styles.stockBox}>
-            <Text style={styles.stockText}>OUT OF STOCK</Text>
-          </View>
-        } 
-      </TouchableOpacity>
 
       {item?.auth === 'true' ? (
         <View style={styles.lockIconBox}>
@@ -62,7 +63,7 @@ const ProductCard = props => {
 export default ProductCard;
 const styles = StyleSheet.create({
   card: {
-    height: 178,
+    height: 165,
     width: width / 3,
     marginBottom: 15,
     overflow: 'hidden',
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     height: 14,
   },
   videoCardbg: {
-    height: width / 3 + 10 - 20,
+    height: 125,
     paddingVertical: 10,
     width: width / 3,
     borderRadius: 8,

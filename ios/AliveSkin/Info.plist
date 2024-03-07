@@ -29,7 +29,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app-1-412081701990-ios-af2f115ca65f1b4c7799a7</string>
+				<string>app-1-546327095982-ios-947a03f20c5ab464d69b3f</string>
 			</array>
 		</dict>
 	</array>
@@ -47,13 +47,13 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Bluetooth access is required to connect to supported card readers.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Allow access to the camera for capture image</string>
+	<string>Our app needs access to your photo library to enable you to upload your photo. Rest assured, we respect your privacy and will never access your photos without your explicit permission. Your photos remain private and are never shared with third parties.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is required to accept payments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow access to the photo library for selecting images</string>
+	<string>We value your privacy and require access to your photo library to allow you to seamlessly upload and share photos within our app. Your photos will only be accessed with your explicit permission and will never be shared with any third parties. Rest assured, we are committed to safeguarding your personal data and ensuring a secure experience.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>MaterialIcons.ttf</string>
@@ -69,7 +69,7 @@
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>Launch Screen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

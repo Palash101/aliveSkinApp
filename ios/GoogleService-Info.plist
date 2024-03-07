@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAUkPwAlH3LVmopjPfmAx3pr5wvtEhyV-8</string>
+	<string>AIzaSyCVYV-98feXWT9F_AZ3hZSWcZFJllm6k6w</string>
 	<key>GCM_SENDER_ID</key>
-	<string>412081701990</string>
+	<string>546327095982</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.alive.skin</string>
 	<key>PROJECT_ID</key>
-	<string>alive-skin</string>
+	<string>alive-skin-da29a</string>
 	<key>STORAGE_BUCKET</key>
-	<string>alive-skin.appspot.com</string>
+	<string>alive-skin-da29a.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:412081701990:ios:af2f115ca65f1b4c7799a7</string>
+	<string>1:546327095982:ios:947a03f20c5ab464d69b3f</string>
 </dict>
 </plist>

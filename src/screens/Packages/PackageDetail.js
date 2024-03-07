@@ -88,8 +88,9 @@ const PackageDetail = props => {
       toast.show('Package purchased successfully.');
       navigation.navigate('Profile',{back: true});
       setLoading(false);
-    } else if (data.url.includes('failed')) {
+    } else if (data.url.includes('app/failed?status=Failed')) {
       toast.show('Order has been failed.');
+      setPayModal(false);
       setLoading(false);
     }
   };

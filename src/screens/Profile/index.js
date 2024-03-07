@@ -4,6 +4,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,6 +25,7 @@ import RecommandedProductCard from '../../components/Card/RecommandedProductCard
 import {ProductContoller} from '../../controllers/ProductController';
 import {HomeController} from '../../controllers/HomeController';
 import PackageCard from '../../components/Card/PackageCard';
+import ProductCard from '../../components/Card/ProductCard';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -111,194 +113,168 @@ const Profile = props => {
     }
   };
 
+  const goToChat = () => {
+    navigation.navigate('Chat', {user_id: user.id});
+  };
+
   return (
     <>
-      {loading === true ? (
+      {/* {loading === true ? (
         <PageLoader loading={loading} />
-      ) : (
-        <View style={styles.container}>
-          <LinearGradient colors={activeColor} style={styles.card1}>
-            <TouchableOpacity
-              onPress={() => goBack()}
-              style={{
-                marginLeft: 15,
-                marginTop: 60,
-              }}>
-              <Image
-                source={assets.back}
-                style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
-              />
-            </TouchableOpacity>
+      ) : ( */}
+      <View style={styles.container}>
+        <LinearGradient colors={activeColor} style={styles.card1}>
+          <TouchableOpacity
+            onPress={() => goBack()}
+            style={{
+              marginLeft: 15,
+              marginTop: 60,
+              marginBottom: 10,
+            }}>
+            <Image
+              source={assets.back}
+              style={{width: 16, height: 16, tintColor: '#000', marginTop: 5}}
+            />
+          </TouchableOpacity>
 
-            <ScrollView
-              style={{flex: 1}}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{padding: 10, paddingBottom: 20}}>
-              {auth === true ? (
-                <View style={styles.prSection}>
-                  {user?.image ? (
-                    <Image
-                      source={{uri: IMAGE_BASE + user?.image}}
-                      style={[styles.prImage]}
-                    />
-                  ) : (
-                    <Image source={assets.profile} style={styles.prImage} />
-                  )}
-                  <View style={styles.prright}>
-                    <View>
-                      <Text style={styles.name}>{user?.name}</Text>
-                      <Text style={styles.phone}>{user?.phone}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() =>
-                        navigation.navigate('ProfileEdit', {user: user})
-                      }>
-                      <Image
-                        source={assets.next}
-                        style={{width: 16, height: 16, tintColor: '#888'}}
-                      />
-                    </TouchableOpacity>
+          <ScrollView
+            style={{flex: 1}}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{padding: 10, paddingBottom: 20}}>
+            {auth === true ? (
+              <View style={styles.prSection}>
+                {user?.image ? (
+                  <Image
+                    source={{uri: IMAGE_BASE + user?.image}}
+                    style={[styles.prImage]}
+                  />
+                ) : (
+                  <Image source={assets.profile} style={styles.prImage} />
+                )}
+                <View style={styles.prright}>
+                  <View>
+                    <Text style={styles.name}>{user?.name}</Text>
+                    <Text style={styles.phone}>{user?.phone}</Text>
                   </View>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    alignItems: 'center',
-                    paddingBottom: 50,
-                    paddingTop: 20,
-                  }}>
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('Login')}
-                    style={styles.Button}>
-                    <Text style={styles.ButtonText}>Login</Text>
+                    onPress={() =>
+                      navigation.navigate('ProfileEdit', {user: user})
+                    }>
+                    <Image
+                      source={assets.next}
+                      style={{width: 16, height: 16, tintColor: '#888'}}
+                    />
                   </TouchableOpacity>
                 </View>
-              )}
+              </View>
+            ) : (
+              <View
+                style={{
+                  alignItems: 'center',
+                  paddingBottom: 50,
+                  paddingTop: 20,
+                }}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Login')}
+                  style={styles.Button}>
+                  <Text style={styles.ButtonText}>Login</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-              {auth === true ? (
-                <View style={styles.sectionBox}>
-                  <TouchableOpacity style={styles.linkBox}>
-                    <View style={{flexDirection: 'row'}}>
-                      <Image source={assets.medal} style={styles.medal} />
-                      <Text
-                        style={{
-                          fontFamily: 'Gill Sans Medium',
-                          fontSize: 16,
-                          lineHeight: 18,
-                          marginLeft: 10,
-                          marginTop: 3,
-                        }}>
-                        {rewards} Rewards Point
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <></>
-              )}
-
-              {packageItem?.length && packageItem[0].bookings != 0 ? (
-                <View style={styles.section}>
-                  <PackageItem item={packageItem[0]} />
-                </View>
-              ) : (
-                <View
-                  style={[styles.section, {marginTop: 10, marginBottom: 0}]}>
-                  <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
-                    Consulting packages
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('Package')}
-                    style={styles.moreBox}>
-                    <Text style={styles.more}>More...</Text>
-                  </TouchableOpacity>
-                  <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{gap: 0}}>
-                    {packages
-                      ?.sort((a, b) => a.position - b.position)
-                      .map((item, index) => (
-                        <PackageCard
-                          key={index + 'Package'}
-                          onPress={() =>
-                            navigation.navigate('PackageDetail', {item: item})
-                          }
-                          item={item}
-                          index={index}
-                        />
-                      ))}
-                  </ScrollView>
-                </View>
-              )}
-
-              {recommandProducts?.length ? (
-                <View style={[styles.section, {marginTop: 20}]}>
-                  <Text style={styles.sectionHeading}>
-                    Recommended Products{' '}
-                  </Text>
-
-                  <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{gap: 10}}>
-                    {recommandProducts.map((item, index) => (
-                      <RecommandedProductCard
-                        onPress={goToProduct}
-                        item={item?.product}
-                        key={index + 'recommend'}
-                        active={index % 2 != 0}
-                      />
-                    ))}
-                  </ScrollView>
-                </View>
-              ) : (
-                <></>
-              )}
-              {auth === true ? (
-                <View style={styles.sectionBox}>
-                  <TouchableOpacity
-                    style={styles.linkBox}
-                    onPress={() => navigation.navigate('Consulation')}>
-                    <View style={{flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          fontFamily: 'Gill Sans Medium',
-                          fontSize: 16,
-                          lineHeight: 18,
-                          marginLeft: 10,
-                        }}>
-                        Consultations
-                      </Text>
-                    </View>
-                    <Image source={assets.next} style={styles.linkNext} />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <></>
-              )}
-
+            {auth === true ? (
               <View style={styles.sectionBox}>
                 <TouchableOpacity style={styles.linkBox}>
                   <View style={{flexDirection: 'row'}}>
-                    <Image source={assets.facebook} style={styles.social} />
+                    <Image source={assets.medal} style={styles.medal} />
                     <Text
                       style={{
                         fontFamily: 'Gill Sans Medium',
                         fontSize: 16,
                         lineHeight: 18,
                         marginLeft: 10,
+                        marginTop: 3,
                       }}>
-                      Facebook
+                      {rewards} Rewards Point
                     </Text>
                   </View>
-                  <Image source={assets.next} style={styles.linkNext} />
                 </TouchableOpacity>
-                <View style={styles.line} />
-                <TouchableOpacity style={styles.linkBox}>
-                  <View style={{flexDirection: 'row'}}>
-                    <Image source={assets.instagram} style={styles.social} />
+              </View>
+            ) : (
+              <></>
+            )}
 
+            {auth === true ? (
+              <>
+                {packageItem?.length && packageItem[0].bookings != 0 ? (
+                  <View style={styles.section}>
+                    <PackageItem
+                      item={packageItem[0]}
+                      upgrade={() => navigation.navigate('Package')}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[styles.section, {marginTop: 10, marginBottom: 0}]}>
+                    <Text style={[styles.sectionHeading, {marginBottom: 0}]}>
+                      Consulting packages
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Package')}
+                      style={styles.moreBox}>
+                      <Text style={styles.more}>More...</Text>
+                    </TouchableOpacity>
+                    <ScrollView
+                      horizontal={true}
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{gap: 0}}>
+                      {packages
+                        ?.sort((a, b) => a.position - b.position)
+                        .map((item, index) => (
+                          <PackageCard
+                            key={index + 'Package'}
+                            onPress={() =>
+                              navigation.navigate('PackageDetail', {item: item})
+                            }
+                            item={item}
+                            index={index}
+                          />
+                        ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </>
+            ) : (
+              <></>
+            )}
+
+            {recommandProducts?.length ? (
+              <View style={[styles.section, {marginTop: 20}]}>
+                <Text style={styles.sectionHeading}>Recommended Products </Text>
+
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{gap: 10}}>
+                  {recommandProducts.map((item, index) => (
+                    <ProductCard
+                      onPress={goToProduct}
+                      item={item?.product}
+                      key={index + 'recommend'}
+                      active={index % 2 != 0}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : (
+              <></>
+            )}
+            {auth === true ? (
+              <View style={styles.sectionBox}>
+                <TouchableOpacity
+                  style={styles.linkBox}
+                  onPress={() => navigation.navigate('Consulation')}>
+                  <View style={{flexDirection: 'row'}}>
                     <Text
                       style={{
                         fontFamily: 'Gill Sans Medium',
@@ -306,94 +282,189 @@ const Profile = props => {
                         lineHeight: 18,
                         marginLeft: 10,
                       }}>
-                      Instagram
+                      Consultations
                     </Text>
                   </View>
                   <Image source={assets.next} style={styles.linkNext} />
                 </TouchableOpacity>
               </View>
+            ) : (
+              <></>
+            )}
+
+            <View style={styles.sectionBox}>
               {auth === true ? (
-                <View style={styles.sectionBox}>
+                <>
                   <TouchableOpacity
                     style={styles.linkBox}
-                    onPress={() => navigation.navigate('SlotHistory')}>
-                    <Text style={styles.linkText}>Appointments History</Text>
+                    onPress={() => goToChat()}>
+                    <View style={{flexDirection: 'row'}}>
+                      <Image source={assets.discussion} style={styles.social} />
+                      <Text
+                        style={{
+                          fontFamily: 'Gill Sans Medium',
+                          fontSize: 16,
+                          lineHeight: 18,
+                          marginLeft: 10,
+                        }}>
+                        Discussion
+                      </Text>
+                    </View>
                     <Image source={assets.next} style={styles.linkNext} />
                   </TouchableOpacity>
                   <View style={styles.line} />
-                  <TouchableOpacity
-                    style={styles.linkBox}
-                    onPress={() => navigation.navigate('ProductHistory')}>
-                    <Text style={styles.linkText}>Purchase History</Text>
-                    <Image source={assets.next} style={styles.linkNext} />
-                  </TouchableOpacity>
-                </View>
+                </>
               ) : (
                 <></>
               )}
-
-              <View style={styles.sectionBox}>
-                <TouchableOpacity
-                  style={styles.linkBox}
-                  onPress={() => navigation.navigate('About')}>
-                  <Text style={styles.linkText}>About</Text>
-                  <Image source={assets.next} style={styles.linkNext} />
-                </TouchableOpacity>
-                <View style={styles.line} />
-                <TouchableOpacity
-                  style={styles.linkBox}
-                  onPress={() => navigation.navigate('Terms')}>
-                  <Text style={styles.linkText}>Terms & Conditions</Text>
-                  <Image source={assets.next} style={styles.linkNext} />
-                </TouchableOpacity>
-                <View style={styles.line} />
-                <TouchableOpacity
-                  style={styles.linkBox}
-                  onPress={() => navigation.navigate('Faqs')}>
-                  <Text style={styles.linkText}>FAQ</Text>
-                  <Image source={assets.next} style={styles.linkNext} />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.sectionBox}>
-                <TouchableOpacity
-                  style={styles.linkBox}
-                  onPress={() => navigation.navigate('Contact')}>
-                  <Text style={styles.linkText}>Contact</Text>
-                  <Image source={assets.next} style={styles.linkNext} />
-                </TouchableOpacity>
-                {auth === true ? (
-                  <>
-                    <View style={styles.line} />
-                    <TouchableOpacity
-                      style={styles.linkBox}
-                      onPress={() => logout()}>
-                      <Text style={styles.linkText}>Logout</Text>
-                      <Image source={assets.next} style={styles.linkNext} />
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <></>
-                )}
-              </View>
-              {auth === true ? (
-                <TouchableOpacity style={{alignSelf: 'center'}}>
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() =>
+                  Linking.openURL('https://t.snapchat.com/ib930T99')
+                }>
+                <View style={{flexDirection: 'row'}}>
+                  <Image source={assets.snapchat} style={styles.social} />
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: 'Gotham-Medium',
-                      marginTop: 30,
+                      fontFamily: 'Gill Sans Medium',
+                      fontSize: 16,
+                      lineHeight: 18,
+                      marginLeft: 10,
                     }}>
-                    Delete Account
+                    Snapchat
                   </Text>
+                </View>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+              <View style={styles.line} />
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() =>
+                  Linking.openURL(
+                    'https://www.tiktok.com/@alive_skin?_t=8jWAZPgGfmE&_r=1',
+                  )
+                }>
+                <View style={{flexDirection: 'row'}}>
+                  <Image source={assets.tiktok} style={styles.social} />
+
+                  <Text
+                    style={{
+                      fontFamily: 'Gill Sans Medium',
+                      fontSize: 16,
+                      lineHeight: 18,
+                      marginLeft: 10,
+                    }}>
+                    TikTok
+                  </Text>
+                </View>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+              <View style={styles.line} />
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() =>
+                  Linking.openURL(
+                    'https://www.instagram.com/alive.skin?igsh=MWhpMm96MHNncDB0aw%3D%3D&utm_source=qr',
+                  )
+                }>
+                <View style={{flexDirection: 'row'}}>
+                  <Image source={assets.instagram} style={styles.social} />
+
+                  <Text
+                    style={{
+                      fontFamily: 'Gill Sans Medium',
+                      fontSize: 16,
+                      lineHeight: 18,
+                      marginLeft: 10,
+                    }}>
+                    Instagram
+                  </Text>
+                </View>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+            </View>
+            {auth === true ? (
+              <View style={styles.sectionBox}>
+                <TouchableOpacity
+                  style={styles.linkBox}
+                  onPress={() => navigation.navigate('SlotHistory')}>
+                  <Text style={styles.linkText}>Appointments History</Text>
+                  <Image source={assets.next} style={styles.linkNext} />
                 </TouchableOpacity>
+                <View style={styles.line} />
+                <TouchableOpacity
+                  style={styles.linkBox}
+                  onPress={() => navigation.navigate('ProductHistory')}>
+                  <Text style={styles.linkText}>Purchase History</Text>
+                  <Image source={assets.next} style={styles.linkNext} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <></>
+            )}
+
+            <View style={styles.sectionBox}>
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() => navigation.navigate('About')}>
+                <Text style={styles.linkText}>About</Text>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+              <View style={styles.line} />
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() => navigation.navigate('Terms')}>
+                <Text style={styles.linkText}>Terms & Conditions</Text>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+              <View style={styles.line} />
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() => navigation.navigate('Faqs')}>
+                <Text style={styles.linkText}>FAQ</Text>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.sectionBox}>
+              <TouchableOpacity
+                style={styles.linkBox}
+                onPress={() => navigation.navigate('Contact')}>
+                <Text style={styles.linkText}>Contact</Text>
+                <Image source={assets.next} style={styles.linkNext} />
+              </TouchableOpacity>
+              {auth === true ? (
+                <>
+                  <View style={styles.line} />
+                  <TouchableOpacity
+                    style={styles.linkBox}
+                    onPress={() => logout()}>
+                    <Text style={styles.linkText}>Logout</Text>
+                    <Image source={assets.next} style={styles.linkNext} />
+                  </TouchableOpacity>
+                </>
               ) : (
                 <></>
               )}
-            </ScrollView>
-          </LinearGradient>
-        </View>
-      )}
+            </View>
+            {auth === true ? (
+              <TouchableOpacity style={{alignSelf: 'center'}}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontFamily: 'Gotham-Medium',
+                    marginTop: 30,
+                  }}>
+                  Delete Account
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <></>
+            )}
+          </ScrollView>
+        </LinearGradient>
+      </View>
+      {/* )} */}
     </>
   );
 };

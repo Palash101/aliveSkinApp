@@ -23,7 +23,7 @@ const Welcome = () => {
   const getUserDetail = async () => {
     const authen = await getAuth();
     if (authen === true) {
-      navigation.navigate('Drawer');
+     navigation.navigate('Questionaries');
     }
   };
 

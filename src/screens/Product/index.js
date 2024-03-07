@@ -69,9 +69,9 @@ const Product = () => {
 
     let array = [{name: 'Featured'}, {name: 'Brands'}, {name: 'All'}];
     console.log(cat.tops.data, 'cat.tops.data');
-    cat.tops.data.forEach(element => {
-      array.push({name: element.name});
-    });
+    // cat.tops.data.forEach(element => {
+    //   array.push({name: element.name});
+    // });
     cat.categories.forEach(element => {
       array.push({name: element.name});
     });
@@ -108,13 +108,14 @@ const Product = () => {
   }, [activeCategory]);
 
   const getFilterProduct = async name => {
-    // setLoadMore(true);
+    setLoadMore(true);
+    setProducts();
     const instance = new ProductContoller();
     const result = await instance.allProducts(name, 1);
     console.log(result);
     setLoadMore(false);
     setTotal(result.products.total);
-    setProducts(result.products.data);
+    setProducts(result.products?.data);
   };
 
   const getallProducts = async () => {
@@ -122,7 +123,7 @@ const Product = () => {
     const instance = new ProductContoller();
     const result = await instance.allProducts('', activePage);
     console.log(result);
-    setProducts(result.products.data);
+    setProducts(result.products?.data);
     setTotal(result.products.total);
     setLoadMore(false);
   };
@@ -155,7 +156,7 @@ const Product = () => {
     console.log(result);
     setLoadMore(false);
     setTotal(result.products.total);
-    setProducts([...products, ...result.products.data]);
+    setProducts([...products, ...result.products?.data]);
   };
 
   const goToSearch = async () => {
@@ -242,8 +243,6 @@ const Product = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
-       
       </View>
       {activeCategory?.name === 'Featured' ? (
         <ScrollView
@@ -264,14 +263,14 @@ const Product = () => {
                 />
               ))}
             </ScrollView>
-       
+
             {loadMore && <ActivityIndicator style={{marginVertical: 50}} />}
           </View>
 
           {recommandProducts?.length ? (
             <View style={styles.section}>
               <Text style={styles.sectionHeading}>Recommended Products </Text>
-       
+
               <ScrollView
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
@@ -308,7 +307,9 @@ const Product = () => {
             </View>
           </View>
         </ScrollView>
-      ):<></>}
+      ) : (
+        <></>
+      )}
 
       {activeCategory?.name === 'Brands' && (
         <ScrollView
@@ -356,24 +357,24 @@ const Product = () => {
               </View>
               {loadMore && <ActivityIndicator />}
               {/* {total != products?.length && (
-                <>
-                  {!loadMore && (
-                    <TouchableOpacity
-                      style={{marginTop: 20}}
-                      onPress={() => loadClick()}>
-                      <Text
-                        style={{
-                          textAlign: 'center',
-                          fontWeight: '600',
-                          color: 'blue',
-                          fontFamily: 'Gill Sans Medium',
-                        }}>
-                        Load More...
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </>
-              )} */}
+                  <>
+                    {!loadMore && (
+                      <TouchableOpacity
+                        style={{marginTop: 20}}
+                        onPress={() => loadClick()}>
+                        <Text
+                          style={{
+                            textAlign: 'center',
+                            fontWeight: '600',
+                            color: 'blue',
+                            fontFamily: 'Gill Sans Medium',
+                          }}>
+                          Load More...
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )} */}
             </View>
           </ScrollView>
         )}

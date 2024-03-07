@@ -30,7 +30,7 @@ const Login = () => {
   const [countryPicker, setCountryPicker] = useState(false);
   const [phone, setPhone] = useState('');
   const [selectedFlag, setSelectedFlag] = useState('');
-  const [code, setCode] = useState('+91');
+  const [code, setCode] = useState('+346');
   const [otpView, setOtpView] = useState(false);
   const [otp, setOTP] = useState();
   const userCtx = useContext(UserContext);

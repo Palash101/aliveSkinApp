@@ -13,6 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {useNavigation} from '@react-navigation/native';
 import RenderHTML from 'react-native-render-html';
 import {SettingController} from '../../controllers/SettingController';
+import { SkeltonBlackCard } from '../../components/Skelton';
 
 const width = Dimensions.get('window').width;
 
@@ -20,14 +21,17 @@ const Contact = props => {
   const activeColor = ['#fff', '#fff', 'rgba(225,215,206,1)'];
   const navigation = useNavigation();
   const [data, setData] = useState();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getTerms();
   }, []);
 
   const getTerms = async () => {
+    setLoading(true);
     const instance = new SettingController();
     const result = await instance.Setting();
+    setLoading(false);
     setData(result?.contact);
   };
 
@@ -40,6 +44,7 @@ const Contact = props => {
             marginLeft: 0,
             marginTop: 60,
             paddingHorizontal: 15,
+            marginBottom: 25,
           }}>
           <Image
             source={assets.back}
@@ -49,8 +54,9 @@ const Contact = props => {
         <Text
           style={{
             alignSelf: 'center',
-            marginTop: -20,
             fontFamily: 'Gotham-Medium',
+            marginTop: -50,
+            lineHeight:30,
           }}>
           Contact
         </Text>
@@ -65,10 +71,16 @@ const Contact = props => {
                 {data?.heading}
               </Text>
           <View style={{marginTop: 10}}>
+          {loading === true ? (
+            <View>
+              <SkeltonBlackCard width={width - 30} height={200} />
+            </View>
+          ) : (
             <RenderHTML
               contentWidth={width - 40}
               source={{html: data?.description}}
             />
+          )}
           </View>
         </ScrollView>
       </LinearGradient>

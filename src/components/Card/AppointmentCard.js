@@ -39,7 +39,7 @@ const AppointmentCard = props => {
           </View>
           <View style={{alignItems: 'center'}}>
             <Text style={{fontSize: 14, marginTop: 5, fontWeight: '600'}}>
-              @ {moment(item.date).format('HH:mm A')}
+              @ {moment(item.date).format('hh:mm A')}
             </Text>
           </View>
         </View>

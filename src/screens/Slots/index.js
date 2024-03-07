@@ -136,7 +136,7 @@ const Slots = () => {
       console.log(result, 'result');
       if (result.status === 'success') {
         toast.show(result.msg);
-        navigation.navigate('Chat', {item: result.booking});
+        navigation.navigate('Chat', {user_id: result.booking.user_id});
         setLoading(false);
       } else {
         toast.show(result.msg);
@@ -182,30 +182,21 @@ const Slots = () => {
       toast.show('Appointment booked successfully.');
       navigation.navigate('home');
       setLoading(false);
-    } else if (data.url.includes('failed')) {
+    } else if (data.url.includes('app/failed?status=Failed')) {
+      setPayModal(false);
       toast.show('Appointment booking has been failed.');
       setLoading(false);
     }
   };
 
   const getCurrentDate = () => {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // Month is 0-based
-    const currentDay = currentDate.getDate();
+    return moment(new Date(), 'YYYY-MM-DD').add(2, 'days').format('YYYY-MM-DD');
+  };
 
-    return `${currentYear}-${currentMonth < 10 ? '0' : ''}${currentMonth}-${currentDay < 10 ? '0' : ''}${currentDay}`;
-  }
-
-  const getFutureDate = (month) => {
-    const currentDate = new Date();
-    currentDate.setMonth(currentDate.getMonth() + month);
-
-    const futureYear = currentDate.getFullYear();
-    const futureMonth = currentDate.getMonth() + 1; // Month is 0-based
-    const futureDay = currentDate.getDate();
-
-    return `${futureYear}-${futureMonth < 10 ? '0' : ''}${futureMonth}-${futureDay < 10 ? '0' : ''}${futureDay}`;
+  const getFutureDate = month => {
+    return moment(new Date(), 'YYYY-MM-DD')
+      .add(month, 'month')
+      .format('YYYY-MM-DD');
   };
 
   return (
@@ -223,6 +214,7 @@ const Slots = () => {
                 height: 28,
                 alignItems: 'center',
                 borderRadius: 5,
+                marginBottom: 10,
               }}
               onPress={() => navigation.goBack()}>
               <Image
@@ -275,39 +267,45 @@ const Slots = () => {
                     Slots on {moment(selected).format('LL')}
                   </Text>
                   <View style={styles.slots}>
-                    {slots?.map((item, index) => (
-                      <TouchableOpacity
-                        style={[
-                          selectedSlot?.id === item.id ||
-                          item.status === 'Booked'
-                            ? styles.selectedSlot
-                            : styles.slot,
-                          item.status === 'Booked'
-                            ? {opacity: 0.3}
-                            : {opacity: 1},
-                        ]}
-                        onPress={() => onSelectSlot(item)}>
-                        <Text
+                    {slots
+                      .sort(
+                        (a, b) =>
+                          moment(a.start_date_time).unix() -
+                          moment(b.start_date_time).unix(),
+                      )
+                      .map((item, index) => (
+                        <TouchableOpacity
                           style={[
                             selectedSlot?.id === item.id ||
                             item.status === 'Booked'
-                              ? styles.selectedSlotText
-                              : styles.slotText,
-                          ]}>
-                          {moment(item.start_date_time).format('HH:mm A')}
-                        </Text>
-                        <Text
-                          style={[
-                            selectedSlot?.id === item.id ||
+                              ? styles.selectedSlot
+                              : styles.slot,
                             item.status === 'Booked'
-                              ? styles.selectedSlotText
-                              : styles.slotText,
-                            {textAlign: 'center', fontSize: 10, marginTop: 2},
-                          ]}>
-                          {item.status}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                              ? {opacity: 0.3}
+                              : {opacity: 1},
+                          ]}
+                          onPress={() => onSelectSlot(item)}>
+                          <Text
+                            style={[
+                              selectedSlot?.id === item.id ||
+                              item.status === 'Booked'
+                                ? styles.selectedSlotText
+                                : styles.slotText,
+                            ]}>
+                            {moment(item.start_date_time).format('hh:mm A')}
+                          </Text>
+                          <Text
+                            style={[
+                              selectedSlot?.id === item.id ||
+                              item.status === 'Booked'
+                                ? styles.selectedSlotText
+                                : styles.slotText,
+                              {textAlign: 'center', fontSize: 10, marginTop: 2},
+                            ]}>
+                            {item.status}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
                   </View>
                 </>
               ) : (
@@ -318,60 +316,86 @@ const Slots = () => {
 
               {selectedSlot && packages?.length > 0 ? (
                 <>
-                  <Text style={styles.avlHeading}>Your Package</Text>
-                  <View style={styles.packages}>
-                    {/* {packages?.map((item1, index) => ( */}
-                    <TouchableOpacity
-                      onPress={() => selectPackage(packages[0])}
-                      style={
-                        selectedPackage?.id === packages[0].id
-                          ? styles.packageItemSelected
-                          : styles.packageItem
-                      }>
-                      <Text
-                        style={[
-                          styles.ptitle,
-                          selectedPackage?.id === packages[0].id
-                            ? {color: '#fff'}
-                            : {},
-                        ]}>
-                        {packages[0].name}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.pappoint,
-                          selectedPackage?.id === packages[0].id
-                            ? {color: '#fff'}
-                            : {},
-                        ]}>
-                        {packages[0].bookings} bookings left
-                      </Text>
-                    </TouchableOpacity>
-                    {/* ))} */}
-                  </View>
+                  {packages[0].bookings === '0' ? 
+                  <>
+                  {user.type === 'Old' ? <></>:
+                   <ThemeButton2
+                   onPress={() => navigation.navigate('Package')}
+                   style={{marginTop: 50, borderRadius: 5}}
+                   label="Purchase Package"
+                 />
+                }
+                </>:
+                  (
+                    <>
+                      <Text style={styles.avlHeading}>Your Package</Text>
+                      <View style={styles.packages}>
+                        <TouchableOpacity
+                          onPress={() => selectPackage(packages[0])}
+                          style={
+                            selectedPackage?.id === packages[0].id
+                              ? styles.packageItemSelected
+                              : styles.packageItem
+                          }>
+                          <Text
+                            style={[
+                              styles.ptitle,
+                              selectedPackage?.id === packages[0].id
+                                ? {color: '#fff'}
+                                : {},
+                            ]}>
+                            {packages[0].name}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.pappoint,
+                              selectedPackage?.id === packages[0].id
+                                ? {color: '#fff'}
+                                : {},
+                            ]}>
+                            {packages[0].bookings} bookings left
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
                 </>
               ) : (
                 <></>
               )}
 
               {selectedPackage ? (
+                <>
+                 {packages[0].bookings > 0 ? (
                 <ThemeButton2
                   onPress={bookAppointMent}
                   style={{marginTop: 50, borderRadius: 5}}
                   label="Book Appointment"
                 />
+                 ):<></>}
+                </>
               ) : (
                 <>
                   {selectedSlot &&
                   user.type === 'Old' &&
-                  packages?.length === 0 ? (
+                  (packages?.length === 0 || packages[0].bookings === '0') ? (
                     <ThemeButton2
                       onPress={checkout}
                       style={{marginTop: 50, borderRadius: 5}}
                       label="Proceed to checkout"
                     />
                   ) : (
-                    <></>
+                    <>
+                      {packages?.length === 0 ? (
+                        <ThemeButton2
+                          onPress={() => navigation.navigate('Package')}
+                          style={{marginTop: 50, borderRadius: 5}}
+                          label="Purchase Package"
+                        />
+                      ) : (
+                        <></>
+                      )}
+                    </>
                   )}
                 </>
               )}

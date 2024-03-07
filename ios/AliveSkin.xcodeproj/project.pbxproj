@@ -14,12 +14,13 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		146AA501E28F418289507831 /* Gotham-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 36605DDA0E49448C8A3AA73B /* Gotham-Black.otf */; };
-		1761885149492503405CF893 /* libPods-AliveSkin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 70A16E7740C219CDA7645F0D /* libPods-AliveSkin.a */; };
+		1761885149492503405CF893 /* libPods-AliveSkin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 70A16E7740C219CDA7645F0D /* libPods-AliveSkin.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		269CFC228A974AB0847357B2 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8E788DC5A6774F3C92740FCB /* Gotham-Medium.otf */; };
 		549ED8B77BEC630230E198E7 /* libPods-AliveSkin-AliveSkinTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D818B62C14DA9358A42166 /* libPods-AliveSkin-AliveSkinTests.a */; };
 		7AA178876E1B45FB86B7BD79 /* Gotham-Book.otf in Resources */ = {isa = PBXBuildFile; fileRef = F665EB60526B4B1682AAB932 /* Gotham-Book.otf */; };
-		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		8E2CE3922AE250EE00A21DC1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8E2CE3912AE250EE00A21DC1 /* GoogleService-Info.plist */; };
+		8EB837012B8A0801009AD29E /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8EB837002B8A0801009AD29E /* Launch Screen.storyboard */; };
+		8EB837032B8A0BDD009AD29E /* Artboard 1 copy 2.png in Resources */ = {isa = PBXBuildFile; fileRef = 8EB837022B8A0BDD009AD29E /* Artboard 1 copy 2.png */; };
+		8EDDF4732B906E5F00466EB6 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8EDDF4722B906E5F00466EB6 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,13 +59,14 @@
 		5B7EB9410499542E8C5724F5 /* Pods-AliveSkin-AliveSkinTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliveSkin-AliveSkinTests.debug.xcconfig"; path = "Target Support Files/Pods-AliveSkin-AliveSkinTests/Pods-AliveSkin-AliveSkinTests.debug.xcconfig"; sourceTree = "<group>"; };
 		66D818B62C14DA9358A42166 /* libPods-AliveSkin-AliveSkinTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AliveSkin-AliveSkinTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		70A16E7740C219CDA7645F0D /* libPods-AliveSkin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AliveSkin.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = AliveSkin/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-AliveSkin-AliveSkinTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliveSkin-AliveSkinTests.release.xcconfig"; path = "Target Support Files/Pods-AliveSkin-AliveSkinTests/Pods-AliveSkin-AliveSkinTests.release.xcconfig"; sourceTree = "<group>"; };
 		8C86F9E0F467489AA761A3F2 /* Gotham-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Gotham-Light.otf"; path = "../assets/fonts/Gotham-Light.otf"; sourceTree = "<group>"; };
-		8E2CE3912AE250EE00A21DC1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8E788DC5A6774F3C92740FCB /* Gotham-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Gotham-Medium.otf"; path = "../assets/fonts/Gotham-Medium.otf"; sourceTree = "<group>"; };
 		8E8301692B70B64B00421928 /* RNViewShot.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNViewShot.xcodeproj; path = "../node_modules/react-native-view-shot/ios/RNViewShot.xcodeproj"; sourceTree = "<group>"; };
 		8E8E33232B47D6B00096399C /* AliveSkin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = AliveSkin.entitlements; path = AliveSkin/AliveSkin.entitlements; sourceTree = "<group>"; };
+		8EB837002B8A0801009AD29E /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		8EB837022B8A0BDD009AD29E /* Artboard 1 copy 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Artboard 1 copy 2.png"; path = "AliveSkin/Images.xcassets/SplashScreen.imageset/Artboard 1 copy 2.png"; sourceTree = "<group>"; };
+		8EDDF4722B906E5F00466EB6 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F665EB60526B4B1682AAB932 /* Gotham-Book.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Gotham-Book.otf"; path = "../assets/fonts/Gotham-Book.otf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -109,14 +111,15 @@
 		13B07FAE1A68108700A75B9A /* AliveSkin */ = {
 			isa = PBXGroup;
 			children = (
+				8EDDF4722B906E5F00466EB6 /* GoogleService-Info.plist */,
+				8EB837022B8A0BDD009AD29E /* Artboard 1 copy 2.png */,
 				8E8E33232B47D6B00096399C /* AliveSkin.entitlements */,
-				8E2CE3912AE250EE00A21DC1 /* GoogleService-Info.plist */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
-				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				8EB837002B8A0801009AD29E /* Launch Screen.storyboard */,
 			);
 			name = AliveSkin;
 			sourceTree = "<group>";
@@ -308,13 +311,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				8E2CE3922AE250EE00A21DC1 /* GoogleService-Info.plist in Resources */,
+				8EB837012B8A0801009AD29E /* Launch Screen.storyboard in Resources */,
+				8EDDF4732B906E5F00466EB6 /* GoogleService-Info.plist in Resources */,
 				120B1381D89E41C6BAC77B07 /* Gill Sans Medium.otf in Resources */,
 				146AA501E28F418289507831 /* Gotham-Black.otf in Resources */,
 				7AA178876E1B45FB86B7BD79 /* Gotham-Book.otf in Resources */,
 				00987E29A8E64502919D5493 /* Gotham-Light.otf in Resources */,
+				8EB837032B8A0BDD009AD29E /* Artboard 1 copy 2.png in Resources */,
 				269CFC228A974AB0847357B2 /* Gotham-Medium.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -573,7 +577,7 @@
 				CODE_SIGN_ENTITLEMENTS = AliveSkin/AliveSkin.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 7RU7Q5LJ69;
 				ENABLE_BITCODE = NO;
@@ -585,7 +589,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -610,7 +614,7 @@
 				CODE_SIGN_ENTITLEMENTS = AliveSkin/AliveSkin.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 7RU7Q5LJ69;
 				INFOPLIST_FILE = AliveSkin/Info.plist;
@@ -621,7 +625,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

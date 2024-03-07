@@ -10,6 +10,7 @@ import Questionaries from '../screens/Questionaries';
 import DrawerNavigation from './DrawerNavigation';
 import Terms from '../screens/Terms';
 import ScreenNavigationStack from './ScreenNavigation';
+import Splash from '../screens/Auth/Splash';
 
 const width = Dimensions.get('window').width;
 
@@ -26,6 +27,14 @@ const AuthNavigationStack = ({navigation}) => {
 
   return (
     <Stack.Navigator>
+       <Stack.Screen
+        name={'Splash'}
+        component={Splash}
+        options={{
+          headerShown: false,
+        }}
+      />
+
       <Stack.Screen
         name={'Welcome'}
         component={Welcome}

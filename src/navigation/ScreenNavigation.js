@@ -36,6 +36,7 @@ import Notification from '../screens/Notification';
 import Consulation from '../screens/Consulation';
 import Pdfs from '../screens/Pdfs';
 import PdfDetail from '../screens/Pdfs/PdfDetails';
+import Splash from '../screens/Auth/Splash';
 
 const width = Dimensions.get('window').width;
 
@@ -68,7 +69,13 @@ const ScreenNavigationStack = ({navigation}) => {
 
   return (
     <Stack.Navigator>
-     
+      <Stack.Screen
+        name={'Splash'}
+        component={Splash}
+        options={{
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name={'Welcome'}
         component={Welcome}

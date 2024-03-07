@@ -63,7 +63,7 @@ const Pdfs = () => {
           style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
         />
       </TouchableOpacity>
-      <Text style={styles.sectionHeading}>Personal programs in Documents</Text>
+      <Text style={styles.sectionHeading}>Digital Documents</Text>
 
       <ScrollView
         style={{flex: 1, marginTop: 15, padding: 15, paddingBottom: 150}}>

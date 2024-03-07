@@ -63,7 +63,8 @@ const Programs = () => {
           alignItems: 'center',
           borderRadius: 5,
           position:'absolute',
-          zIndex: 99
+          zIndex: 99,
+          marginBottom:25
 
         }}
         onPress={() => navigation.goBack()}
@@ -133,6 +134,7 @@ const styles = StyleSheet.create({
     fontFamily:'Gill Sans Medium',
     marginTop:55,
     textAlign:'center',
+    marginBottom:10
     
   },
 

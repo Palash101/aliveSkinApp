@@ -16,15 +16,15 @@ const RecommandedProductCard = props => {
   const {item} = props;
   return (
     <TouchableOpacity onPress={() => props.onPress(item)} style={styles.card}>
-      {item?.featured_image && (
+      {item?.images?.length ? (
         <Image
-          source={{uri: IMAGE_BASE + item?.featured_image}}
+          source={{uri: IMAGE_BASE + item?.images[0].image}}
           style={styles.videoCardbg}
         />
-      )}
+      ):<></>}
       <View style={styles.content}>
         <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
-          {item?.name}
+          {item?.name}{item?.variant_name ? <Text style={{textTransform:'uppercase'}}>- {item?.variant_name}</Text> : ''}
         </Text>
         {item?.product_categories?.name ? (
           <Text style={styles.tag} ellipsizeMode="tail" numberOfLines={1}>

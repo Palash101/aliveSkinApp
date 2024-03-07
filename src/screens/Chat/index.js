@@ -57,9 +57,9 @@ const Chat = props => {
   const getUrl = async () => {
     getNotifications();
     setLoading(true);
-    console.log(props.route.params.item, 'itemmm');
+    console.log(`https://firebase-chat-mu.vercel.app/?userId=${props.route.params.user_id}`, 'itemmm');
     setUrl(
-      `https://firebase-chat-mu.vercel.app/?bookingId=${props.route.params.item.slot_id}&userId=${props.route.params.item.user_id}`,
+      `https://firebase-chat-mu.vercel.app/?userId=${props.route.params.user_id}`,
     );
     setLoading(false);
   };

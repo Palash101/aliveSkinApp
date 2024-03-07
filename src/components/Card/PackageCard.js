@@ -52,12 +52,15 @@ const PackageCard = props => {
   return (
     <TouchableOpacity onPress={props.onPress} style={styles.card1}>
       <View style={styles.innerContent}>
-        {item?.tag &&
-        <View style={styles.tags}>
-          <Text style={styles.tag}>{item?.tag}</Text>
-        </View>
-        }
-        <Text style={styles.title}>{item?.name}</Text>
+        {item?.tag && (
+          <View style={styles.tags}>
+            <Text style={styles.tag}>{item?.tag}</Text>
+          </View>
+        )}
+        <Text numberOfLines={2} ellipsizeMode="tail" style={styles.title}>
+          {item?.name}
+        </Text>
+
         <Text style={styles.subTitle}>{item?.bookings} Appointments</Text>
         <Text style={styles.price}>{item?.price} KD</Text>
         <Text style={styles.pricePara}>{item?.days} DAYS</Text>
@@ -65,7 +68,6 @@ const PackageCard = props => {
           <Text style={styles.btnText}>Get Started</Text>
         </View>
       </View>
-     
     </TouchableOpacity>
   );
 };
@@ -90,15 +92,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
     paddingLeft: 10,
     textTransform: 'uppercase',
-    borderWidth:1,
-    borderTopWidth:0,
-    alignSelf:'center',
-    alignItems:'center',
-    margin:'auto',
-    width:'auto',
-    marginTop:-10,
-    borderColor:'#563925'
-
+    borderWidth: 1,
+    borderTopWidth: 0,
+    alignSelf: 'center',
+    alignItems: 'center',
+    margin: 'auto',
+    width: 'auto',
+    marginTop: -10,
+    borderColor: '#563925',
   },
   tag: {
     lineHeight: 24,
@@ -140,6 +141,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 18,
     fontFamily: 'Gill Sans Medium',
+    position: 'absolute',
+    top: 70,
+    left: 0,
+    right: 0,
+    margin: 'auto',
   },
   pricePara: {
     color: '#563925',
@@ -147,9 +153,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Gill Sans Medium',
     textAlign: 'center',
+    position: 'absolute',
+    top: 120,
+    left: 0,
+    right: 0,
+    margin: 'auto',
   },
 
   title: {
+    // height:60,
     color: '#000',
     fontWeight: '600',
     fontSize: 16,
@@ -177,17 +189,18 @@ const styles = StyleSheet.create({
     marginTop: 7,
     fontFamily: 'Gill Sans Medium',
   },
-  btn1:{
+  btn1: {
     backgroundColor: '#563925',
-    position:'absolute',
-    left:10,bottom:10,
-    right:10,
-    borderRadius:6,
-    padding:5
+    position: 'absolute',
+    left: 10,
+    bottom: 10,
+    right: 10,
+    borderRadius: 6,
+    padding: 5,
   },
-  btnText:{
-    textAlign:'center',
-    color:'#fff',
-    fontFamily:'Gill Sans Medium'
-  }
+  btnText: {
+    textAlign: 'center',
+    color: '#fff',
+    fontFamily: 'Gill Sans Medium',
+  },
 });

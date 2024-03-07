@@ -30,6 +30,7 @@ const PdfDetail = props => {
   const {getToken, getUser} = useContext(UserContext);
   const [item, setItem] = useState();
   const [loading, setLoading] = useState(false);
+  const [showPdf, setShowPdf] = useState(false)
   const toast = useToast();
 
   useEffect(() => {
@@ -41,62 +42,101 @@ const PdfDetail = props => {
 
   return (
     <View style={styles.container}>
+      
+
       <PageLoader loading={loading} />
-
-      <TouchableOpacity
-        style={{
-          marginLeft: 20,
-          marginTop: 50,
-          backgroundColor: '#000',
-          width: 28,
-          height: 28,
-          alignItems: 'center',
-          borderRadius: 5,
-          position: 'absolute',
-          zIndex: 99,
-        }}
-        onPress={() => navigation.goBack()}>
-        <Image
-          source={assets.back}
-          style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
-        />
-      </TouchableOpacity>
-      <Text style={styles.sectionHeading}></Text>
-
-      <ScrollView
-        style={{flex: 1}}
-        contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
-        scrollEventThrottle={16}>
-        <View style={{marginTop: 15}}>
-          <Text style={styles.avlHeading}>{item?.title}</Text>
-        </View>
-
-        {item?.decription && (
-          <View style={{marginTop: 15}}>
-            <RenderHTML
-              contentWidth={width - 40}
-              source={{html: item?.decription}}
+      {showPdf === true ? (
+        <View style={{flex:1}}>
+           <TouchableOpacity
+            style={{
+              marginLeft: 20,
+              marginTop: 50,
+              backgroundColor: '#000',
+              width: 28,
+              height: 28,
+              alignItems: 'center',
+              borderRadius: 5,
+              position: 'absolute',
+              zIndex: 99,
+            }}
+            onPress={() => setShowPdf(false)}>
+            <Image
+              source={assets.back}
+              style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
             />
+          </TouchableOpacity>
+        <Pdf
+          source={{uri: IMAGE_BASE + item.pdf, cache: true}}
+          onLoadComplete={(numberOfPages, filePath) => {
+            console.log(`number of pages: ${numberOfPages}`);
+          }}
+          onPageChanged={(page, numberOfPages) => {
+            console.log(`current page: ${page}`);
+          }}
+          onError={error => {
+            console.log(error);
+          }}
+          style={styles.pdf}
+        />
+        </View>
+      ) : (
+        <>
+          <TouchableOpacity
+            style={{
+              marginLeft: 20,
+              marginTop: 50,
+              backgroundColor: '#000',
+              width: 28,
+              height: 28,
+              alignItems: 'center',
+              borderRadius: 5,
+              position: 'absolute',
+              zIndex: 99,
+            }}
+            onPress={() => navigation.goBack()}>
+            <Image
+              source={assets.back}
+              style={{width: 16, height: 16, tintColor: '#fff', marginTop: 5}}
+            />
+          </TouchableOpacity>
+          <Text style={styles.sectionHeading}></Text>
+
+          <ScrollView
+            style={{flex: 1}}
+            contentContainerStyle={{paddingHorizontal: 15, paddingBottom: 50}}
+            scrollEventThrottle={16}>
+            <View style={{marginTop: 15}}>
+              <Text style={styles.avlHeading}>{item?.title}</Text>
+            </View>
+
+            {item?.decription && (
+              <View style={{marginTop: 15}}>
+                <RenderHTML
+                  contentWidth={width - 40}
+                  source={{html: item?.decription}}
+                />
+              </View>
+            )}
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <View>
+              <Text style={styles.footerPrice}>{item?.type === 'Paid'? item.discount_price ? item.discount_price+'KD' : item.amount + 'KD' : 'Free'}</Text>
+              {item?.discount_price ?
+              <Text style={styles.footerPrice2}>{item.amount} KD</Text>
+              :<></>}
+            </View>
+            <View>
+              <TouchableOpacity
+                style={styles.cartButton}
+                onPress={() => setShowPdf(true)}>
+                <Text style={styles.cartButtonText}>{item?.type === 'Paid'? 'Purchase Now' : 'Read Now'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-        {item?.pdf ? (
-          <Pdf
-            source={{uri: IMAGE_BASE + item.pdf, cache: true}}
-            onLoadComplete={(numberOfPages, filePath) => {
-              console.log(`number of pages: ${numberOfPages}`);
-            }}
-            onPageChanged={(page, numberOfPages) => {
-              console.log(`current page: ${page}`);
-            }}
-            onError={error => {
-              console.log(error);
-            }}
-            style={styles.pdf}
-          />
-        ) : (
-          <></>
-        )}
-      </ScrollView>
+
+        </>
+      )}
     </View>
   );
 };
@@ -106,6 +146,44 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  footer: {
+    paddingTop: 10,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerPrice: {
+    color: '#563925',
+    fontWeight: '600',
+    marginTop: 5,
+    fontSize: 18,
+    fontFamily: 'Gotham-Medium',
+  },
+  footerPrice2: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 14,
+    textDecorationLine: 'line-through',
+  },
+
+  cartButton: {
+    padding: 10,
+    backgroundColor: '#563925',
+    flexDirection: 'row',
+    width: width / 2 - 10,
+    justifyContent: 'center',
+    borderRadius: 20,
+  },
+  cartButtonText: {
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#fff',
+    fontFamily: 'Gill Sans Medium',
+  },
+
   sectionHeading: {
     fontSize: 16,
     fontWeight: '600',
@@ -115,9 +193,9 @@ const styles = StyleSheet.create({
   },
   pdf: {
     flex: 1,
-    width: Dimensions.get('window').width - 30,
-    height: Dimensions.get('window').height - 325,
-    marginTop: 10,
+    width: Dimensions.get('window').width - 0,
+    height: Dimensions.get('window').height - 40,
+    marginTop: 45,
   },
   commentBox: {
     marginBottom: 10,

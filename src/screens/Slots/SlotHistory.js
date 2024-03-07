@@ -71,7 +71,7 @@ const SlotHistory = () => {
     }
   };
   const goChat = item => {
-    navigation.navigate('Chat', {item: item});
+    navigation.navigate('Chat', {user_id: item.user_id});
   };
 
   const Cancel = async item => {

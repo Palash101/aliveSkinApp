@@ -79,18 +79,19 @@ const Questionaries = () => {
   const getUserDetail = async () => {
     const token = await getToken();
     if (token) {
+      console.log(token)
       const instance = new AuthContoller();
       const result = await instance.profileDetails(token);
-      console.log(result?.user?.name, 'ressss');
+      console.log(result?.user?.name, 'ressss quest');
 
       if (result?.user?.name && result.user?.gender) {
         navigation.navigate('Drawer');
-        setLoading(false);
+        //setLoading(false);
       } else {
-        setLoading(false);
-      }
+         setLoading(false);
+       }
     } else {
-      navigation.navigate('Drawer');
+       navigation.navigate('Drawer');
     }
   };
 
@@ -103,7 +104,7 @@ const Questionaries = () => {
 
   const [data, setData] = useState({
     name: '',
-    gender: '',
+    gender: 'female',
     dob: maxDate,
   });
 

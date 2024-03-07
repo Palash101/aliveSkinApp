@@ -40,4 +40,23 @@ export class HomeController {
       });
   }
 
+  async AllBanners() {
+    
+    return fetch('https://asia-south1-alive-skin-da29a.cloudfunctions.net/promotional', {
+      headers: {
+        Accept: 'application/json',
+      },
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log(responseJson, 'response');
+        return responseJson;
+      })
+      .catch(error => {
+        console.log(error);
+        return {success: false, error};
+      });
+  }
+
 }

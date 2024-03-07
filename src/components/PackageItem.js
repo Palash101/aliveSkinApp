@@ -22,7 +22,7 @@ export const PackageItem = props => {
           <View style={styles.dayBox}>
             <Text style={styles.expireText}>Expired in</Text>
             <Text style={styles.day}>
-              {moment(item.expire_date).diff(moment(), 'days')}
+              {moment(item.expire_date).diff(moment(), 'days') + 1}
             </Text>
             <Text style={styles.dayText}>Days</Text>
           </View>

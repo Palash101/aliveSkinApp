@@ -54,6 +54,7 @@ const ProductDetails = props => {
   const [authModal, setAuthModal] = useState(false);
   const [checkDisabled, setCheckDisabled] = useState(false);
   const keyboardHeight = GetKeyboardHeight();
+  const [allProducts, setAllProducts] = useState([]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -65,11 +66,31 @@ const ProductDetails = props => {
     return unsubscribe;
   }, [props.route.params]);
 
+  const loadItem = async i => {
+    setQuantity(0);
+    setLoading(true);
+    setAuthModal(false);
+    setMore(false);
+    setItem(i);
+    AsyncStorage.getItem('CartData', (_err, result) => {
+      console.log(result, 'resultresult');
+      if (result) {
+        serCartData(JSON.parse(result));
+        let isPresent = JSON.parse(result).filter(i => i.productId === i.id);
+        if (isPresent?.length) {
+          setQuantity(isPresent[0].quantity);
+        }
+      }
+    });
+    setLoading(false);
+  };
+
   const getDetail = async () => {
     setQuantity(0);
 
     const instance = new ProductContoller();
     const result1 = await instance.productDetail(props.route.params.item.id);
+    console.log(result1, 'resss');
     setItem(result1.products);
 
     AsyncStorage.getItem('CartData', (_err, result) => {
@@ -84,6 +105,12 @@ const ProductDetails = props => {
         }
       }
     });
+    if (result1.products?.variant_type) {
+      const similarProducts = await instance.productByName(
+        result1.products?.name,
+      );
+      setAllProducts(similarProducts.products);
+    }
 
     setLoading(false);
   };
@@ -104,9 +131,13 @@ const ProductDetails = props => {
     let qty = val === 'add' ? quantity + 1 : quantity - 1;
 
     if (qty <= item.current_stock) {
+      let name = item.name;
+      if (item?.variant_name) {
+        name = item.name + ' - ' + item.variant_name;
+      }
       let itemData = [
         {
-          itemName: item.name,
+          itemName: name,
           itemImage: item.images[0].image,
           category: item.product_categories.name,
           productId: item.id,
@@ -224,54 +255,77 @@ const ProductDetails = props => {
         <>
           <ScrollView style={{flex: 1, marginTop: 10}}>
             <View style={styles.imageSection}>
-              <FlatList
-                horizontal={true}
-                data={item.images}
-                showsHorizontalScrollIndicator={false}
-                onScroll={Animated.event(
-                  [{nativeEvent: {contentOffset: {x: scrollX}}}],
-                  {
-                    useNativeDriver: false,
-                  },
-                )}
-                pagingEnabled
-                decelerationRate={'normal'}
-                scrollEventThrottle={16}
-                renderItem={(item1, key) => (
+              {item.images?.length > 0 ? (
+                <FlatList
+                  horizontal={true}
+                  data={item.images}
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={Animated.event(
+                    [{nativeEvent: {contentOffset: {x: scrollX}}}],
+                    {
+                      useNativeDriver: false,
+                    },
+                  )}
+                  pagingEnabled
+                  decelerationRate={'normal'}
+                  scrollEventThrottle={16}
+                  renderItem={(item1, key) => (
+                    <Image
+                      source={{uri: IMAGE_BASE + item1?.item.image}}
+                      style={styles.bannerImage}
+                    />
+                  )}
+                />
+              ) : (
+                <>
                   <Image
-                    source={{uri: IMAGE_BASE + item1?.item.image}}
+                    source={{
+                      uri: IMAGE_BASE + props.route.params.item?.featured_image,
+                    }}
                     style={styles.bannerImage}
                   />
-                )}
-              />
-
-              <ExpandingDot
-                data={item.images}
-                expandingDotWidth={30}
-                scrollX={scrollX}
-                inActiveDotOpacity={0.6}
-                inActiveDotColor="#563925"
-                activeDotColor="#563925"
-                dotStyle={{
-                  width: 10,
-                  height: 10,
-                  backgroundColor: '#563925',
-                  borderRadius: 5,
-                  marginHorizontal: 5,
-                }}
-                containerStyle={{
-                  bottom: 30,
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                }}
-              />
+                </>
+              )}
+              {item.images?.length > 1 ? (
+                <ExpandingDot
+                  data={item.images}
+                  expandingDotWidth={30}
+                  scrollX={scrollX}
+                  inActiveDotOpacity={0.6}
+                  inActiveDotColor="#563925"
+                  activeDotColor="#563925"
+                  dotStyle={{
+                    width: 10,
+                    height: 10,
+                    backgroundColor: '#563925',
+                    borderRadius: 5,
+                    marginHorizontal: 5,
+                  }}
+                  containerStyle={{
+                    bottom: 30,
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                  }}
+                />
+              ) : (
+                <></>
+              )}
             </View>
             <View style={styles.content}>
               <View style={styles.titleBox}>
                 <View style={{width: width - 110}}>
-                  <Text style={styles.title}>{item.name}</Text>
+                  <Text style={styles.title}>
+                    {item?.name}{' '}
+                    {item?.variant_name ? (
+                      <Text >
+                        - {item?.variant_name}
+                      </Text>
+                    ) : (
+                      ''
+                    )}
+                  </Text>
                   <Text style={styles.category}>
-                    {item.product_categories.name}
+                    {item?.product_categories?.name}
                   </Text>
                 </View>
                 <View>
@@ -288,6 +342,81 @@ const ProductDetails = props => {
                   )}
                 </View>
               </View>
+              {item?.variant_type ? (
+                <View style={styles.verient}>
+                  <Text style={styles.verHeading}>{item?.variant_type}</Text>
+                  <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:10}}  style={styles.verItems}>
+                    {allProducts.map((i, index) => (
+                      <TouchableOpacity
+                        onPress={() => loadItem(i)}
+                        style={styles.verItem}>
+                        {i.variant_image ? (
+                          <>
+                            <Image
+                              source={{uri: IMAGE_BASE + i?.variant_image}}
+                              style={[styles.verImage]}
+                            />
+                            {item.variant_name === i.variant_name &&
+                            i.current_stock != 0 ? (
+                              <Image
+                                source={assets.check}
+                                style={styles.checkImage}
+                              />
+                            ) : (
+                              <></>
+                            )}
+
+                            {i.current_stock === 0 ? (
+                              <Image
+                                source={assets.close}
+                                style={styles.closeImage}
+                              />
+                            ) : (
+                              <></>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <View
+                              style={[
+                                {
+                                  borderWidth: 1,
+                                  borderColor:
+                                    item.variant_name === i.variant_name
+                                      ? '#000'
+                                      : '#ddd',
+                                  paddingHorizontal: 5,
+                                  paddingVertical: 4,
+                                  borderRadius: 4,
+                                },
+                              ]}>
+                              <Text
+                                style={{
+                                  color:
+                                    item.variant_name === i.variant_name
+                                      ? '#000'
+                                      : '#888',
+                                  fontFamily: 'Gotham-Medium',
+                                }}>
+                                {i.variant_name}
+                              </Text>
+                            </View>
+                          </>
+                        )}
+                        {i.current_stock < 4 && i.current_stock > 0 ? (
+                          <Text style={styles.left}>
+                            {i.current_stock} LEFT
+                          </Text>
+                        ) : (
+                          <></>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : (
+                <></>
+              )}
 
               {item.description && item.description !== null && (
                 <View
@@ -335,7 +464,7 @@ const ProductDetails = props => {
                 </View>
               )}
 
-              {item.ingredients && (
+              {item.ingredients?.length > 0 ? (
                 <View style={styles.ingBox}>
                   <Text style={styles.title}>Ingredients</Text>
                   <View style={styles.ingList}>
@@ -361,6 +490,8 @@ const ProductDetails = props => {
                     ))}
                   </View>
                 </View>
+              ) : (
+                <></>
               )}
             </View>
           </ScrollView>
@@ -417,7 +548,65 @@ const ProductDetails = props => {
         </>
       )}
 
-      <ModalView
+      <Modal
+        visible={authModal}
+        onDismiss={() => setAuthModal(false)}
+        style={{height: 'auto'}}>
+        <View style={styles.modalBox1}>
+          <View style={{flexDirection: 'row', marginBottom: 10}}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontFamily: 'Gill Sans Medium',
+              }}>
+              Please enter your authentication code
+            </Text>
+          </View>
+          <View style={styles.inputBox}>
+            <TextInput
+              value={code}
+              label={''}
+              onChangeText={setCode}
+              placeholder="Enter you code "
+              style={styles.input}
+            />
+          </View>
+          <Text
+            style={{
+              color: 'red',
+              fontSize: 12,
+              position: 'absolute',
+              marginTop: 90,
+              marginLeft: 20,
+            }}>
+            {codeError}
+          </Text>
+          <TouchableOpacity
+            disabled={!code}
+            style={[
+              styles.cartButton,
+              {
+                width: 140,
+                marginTop: 0,
+                alignItems: 'center',
+                alignSelf: 'flex-end',
+              },
+              code ? {opacity: 1} : {opacity: 0.5},
+            ]}
+            onPress={() => checkCode()}>
+            {modalLoad ? (
+              <ActivityIndicator size={16} />
+            ) : (
+              <>
+                <Image source={assets.cart} style={styles.cartImage} />
+                <Text style={styles.cartButtonText}>Add to Cart</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* <ModalView
         visible={authModal}
         setVisible={() => setAuthModal(false)}
         style={{
@@ -439,62 +628,7 @@ const ProductDetails = props => {
           </View>
         }>
         <View style={{paddingHorizontal: 10}}>
-          {/* {data.map((i, index) => (
-              <View style={styles.qbox}>
-                <Text style={styles.label}>{i.question}</Text>
-                <View style={styles.answerBox}>
-                  {i.type === 'option' ? (
-                    <>
-                      {i.options.map((j, ind1) => (
-                        <TouchableOpacity
-                          onPress={() => saveAnswer(i, j)}
-                          style={[
-                            styles.answerItem,
-                            i.answer === j ? styles.activeAnswer : {},
-                          ]}>
-                          <Text style={[styles.answerText]}>{j}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </>
-                  ) : (
-                    <>
-                      {i.type === 'boolean' ? (
-                        <>
-                          <TouchableOpacity
-                            onPress={() => saveAnswer(i, 'Yes')}
-                            style={[
-                              styles.answerItem,
-                              i.answer === 'Yes' ? styles.activeAnswer : {},
-                            ]}>
-                            <Text style={[styles.answerText]}>Yes</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => saveAnswer(i, 'No')}
-                            style={[
-                              styles.answerItem,
-                              i.answer === 'No' ? styles.activeAnswer : {},
-                            ]}>
-                            <Text style={[styles.answerText]}>No</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : (
-                        <>
-                          <View style={styles.inputBox}>
-                            <TextInput
-                              value={data[index].answer}
-                              label={''}
-                              onChangeText={val => saveAnswer(i, val)}
-                              placeholder=""
-                              style={styles.input}
-                            />
-                          </View>
-                        </>
-                      )}
-                    </>
-                  )}
-                </View>
-              </View>
-            ))} */}
+        
 
           <View style={styles.inputBox}>
             <TextInput
@@ -520,7 +654,7 @@ const ProductDetails = props => {
             style={[
               styles.cartButton,
               {
-                width: 120,
+                width: 140,
                 marginTop: 10,
                 alignItems: 'center',
                 alignSelf: 'flex-end',
@@ -538,7 +672,7 @@ const ProductDetails = props => {
             )}
           </TouchableOpacity>
         </View>
-      </ModalView>
+      </ModalView> */}
 
       <Modal
         visible={ingModal}
@@ -579,6 +713,67 @@ export default ProductDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  checkImage: {
+    width: 20,
+    height: 20,
+    position: 'absolute',
+    marginTop: 7,
+    tintColor: '#fff',
+  },
+  closeImage: {
+    width: 16,
+    height: 16,
+    position: 'absolute',
+    marginTop: 10,
+    tintColor: '#fff',
+  },
+  left: {
+    fontSize: 8,
+    color: 'red',
+    borderWidth: 1,
+    paddingHorizontal: 2,
+    borderColor: 'red',
+    marginTop: 2,
+    fontFamily: 'Gotham-Medium',
+    borderRadius: 2,
+    paddingVertical: 2,
+  },
+  verient: {
+    marginVertical: 10,
+  },
+  verItem: {
+    alignItems: 'center',
+  },
+  verHeading: {
+    fontFamily: 'Gill Sans Medium',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  verName: {
+    color: '#000',
+    fontSize: 8,
+    marginVertical: 2,
+  },
+  verImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+    // borderWidth: 2,
+    // borderColor: 'rgba(255,255,255,0.5)',
+    alignSelf: 'center',
+  },
+  verItems: {
+    //flexDirection: 'row',
+    gap: 10,
+  },
+
+  modalBox1: {
+    backgroundColor: '#fff',
+    padding: 20,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 10,
   },
   modalBox: {
     paddingTop: Platform.OS === 'ios' ? 30 : 30,
@@ -775,7 +970,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontFamily: 'Gill Sans Medium',
-    lineHeight: 16,
+    lineHeight: 20,
   },
   category: {
     color: '#888',

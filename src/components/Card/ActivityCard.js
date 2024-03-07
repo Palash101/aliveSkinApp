@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {VideoButton} from '../Buttons';
 import {assets} from '../../config/AssetsConfig';
+import RenderHTML from 'react-native-render-html';
 
 const height = Dimensions.get('window').height;
 const width = Dimensions.get('window').width;
@@ -46,18 +47,27 @@ const ActivityCard = props => {
             fontFamily: 'Gill Sans Medium',
             overflow: 'hidden',
           }}>
-          {item.type == 'Free' ? 'Free' : item?.amount}
+          {item.type == 'Free' ? 'Free' : item?.amount+' KD'}
         </Text>
       </View>
-      <Text style={[styles.card2Title, props.active ? {color: '#fff'} : '']}>
+      <Text style={[styles.card2Title, props.active ? {color: '#fff'} : '']} ellipsizeMode="tail"
+         numberOfLines={2}>
         {item?.title}
       </Text>
-      <Text
+      {/* <Text
         style={[styles.card2Para, props.active ? {color: '#f2f2f2'} : '']}
         ellipsizeMode="tail"
         numberOfLines={4}>
         {item?.decription}
-      </Text>
+      </Text> */}
+      {item?.decription && (
+         <Text
+         style={[styles.card2Para, props.active ? {color: '#f2f2f2'} : '']}
+         ellipsizeMode="tail"
+         numberOfLines={3}>
+          {item?.decription}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -84,7 +94,7 @@ const styles = StyleSheet.create({
   card2Title: {
     color: '#000',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 14,
     width: '100%',
     position: 'relative',
     marginTop: 10,

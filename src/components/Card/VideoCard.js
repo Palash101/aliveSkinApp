@@ -17,12 +17,15 @@ const width = Dimensions.get('window').width;
 
 const VideoCard = props => {
   const {item} = props;
+  console.log(IMAGE_BASE + item.bannerImage,'imggg')
   return (
     <TouchableOpacity onPress={props.onPress} style={styles.videoCard}>
       <ImageBackground
-        source={{uri: IMAGE_BASE + item.bannerImage}}
+       // source={{uri: IMAGE_BASE + item.bannerImage}}
+        source={item.bannerImage ? {uri: IMAGE_BASE + item.bannerImage} : assets.videobg}
         resizeMode="cover"
         style={styles.videoCardbg}>
+
         <LikeSection
           like={() => console.log()}
           liked={item?.my_like?.like === 'Liked' ? 'Liked' : 'Uniked'}
@@ -44,7 +47,7 @@ const VideoCard = props => {
             }}>
             <Image
               source={assets.play}
-              style={{width: 16, height: 16,marginLeft:2, tintColor: '#fff'}}
+              style={{width: 16, height: 16, marginLeft:2, tintColor: '#fff'}}
             />
           </View>
         </View>
